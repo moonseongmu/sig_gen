@@ -1,0 +1,1 @@
+option('board', type: 'combo', choices: ['weact_stm32h723'], value: 'weact_stm32h723')

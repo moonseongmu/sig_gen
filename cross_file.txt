@@ -1,0 +1,12 @@
+[binaries]
+c='clang.exe'
+c_ld='C:\\Program Files\\ATfE-22.1.0-Windows-x86_64\\bin\\ld.lld.exe'
+ar='llvm-ar.exe'
+strip='llvm-strip.exe'
+objcopy='llvm-objcopy.exe'
+
+[host_machine]
+system='bare_metal'
+cpu_family='arm'
+cpu='cortex-m7'
+endian='little'

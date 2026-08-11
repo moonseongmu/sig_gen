@@ -1,0 +1,40 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "cwd": "${workspaceFolder}",
+            "executable": "./build/tufo-afm.elf",
+            "name": "OpenOCD",
+            "request": "launch",
+            "type": "cortex-debug",
+            "svdFile": "./STM32H723.svd",
+            "toolchainPrefix": "arm-none-eabi",
+            "device": "STM32H723VG",
+            "servertype": "openocd",
+            "configFiles": ["interface/cmsis-dap.cfg", "target/stm32h7x.cfg"],
+            "searchDir": [],
+            "runToEntryPoint": "main",
+            "showDevDebugOutput": "none",
+            "liveWatch": {
+                "enabled": true,
+                "samplesPerSecond": 20
+            }
+        },
+        {
+            "name": "PyOCD",
+            "cwd": "${workspaceFolder}",
+            "executable": "./build/tufo-afm.elf",
+            "request": "launch",
+            "type": "cortex-debug",
+            "runToEntryPoint": "main",
+            "servertype": "pyocd",
+            "svdFile": "./STM32H723.svd",
+            "device": "stm32h723vgtx",
+            "overrideGDBServerStartedRegex": "GDB server listening on port"
+            
+        }
+    ]
+}

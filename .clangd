@@ -1,0 +1,4 @@
+CompileFlags:
+  Add: [
+    "-isystem", "C:\\Program Files\\ATfE-22.1.0-Windows-x86_64\\lib\\clang-runtimes\\arm-none-eabi\\include",
+  ]
