@@ -2,8 +2,8 @@
 
 #include "dds.h"
 #include "interface.h"
-#include <stdint.h>
 #include <stdbool.h>
+#include <stdint.h>
 
 #define BLOCK_SIZE 512
 
@@ -11,7 +11,8 @@ typedef enum active_buffer_t
 {
     buffer_1,
     buffer_2
-} active_buffer_t; //buffer used for calculations, not currently being output by dac
+} active_buffer_t; // buffer used for calculations, not currently being output
+                   // by dac
 
 typedef struct oscillator_t
 {
@@ -25,5 +26,8 @@ typedef struct oscillator_t
     bool buffers_swapped;
 } oscillator_t;
 
-void fill_buffer(oscillator_t *oscillator, uint32_t block_size);
-void start_oscillations(float out_freq, float clock_freq, oscillator_t *oscillator, uint32_t block_size);
+void fill_buffer (oscillator_t *oscillator, uint32_t block_size);
+void start_oscillations (float out_freq,
+                         float clock_freq,
+                         oscillator_t *oscillator,
+                         uint32_t block_size);

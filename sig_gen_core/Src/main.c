@@ -1,12 +1,10 @@
-#include "main.h" 
+#include "main.h"
 
-
-int main(void)
+int main (void)
 {
-    while(1)
+    while (1)
     {
-        
     }
 
-    return 0; //should never reach here!!
+    return 0; // should never reach here!!
 }
