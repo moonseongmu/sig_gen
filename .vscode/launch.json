@@ -10,7 +10,7 @@
             "name": "OpenOCD",
             "request": "launch",
             "type": "cortex-debug",
-            "svdFile": "./STM32H723.svd",
+            "svdFile": "${workspaceFolder}/boards/stm32h723/STM32H723.svd",
             "toolchainPrefix": "arm-none-eabi",
             "device": "STM32H723VG",
             "servertype": "openocd",
@@ -31,7 +31,7 @@
             "type": "cortex-debug",
             "runToEntryPoint": "main",
             "servertype": "pyocd",
-            "svdFile": "./STM32H723.svd",
+            "svdFile": "${workspaceFolder}/boards/stm32h723/STM32H723.svd",
             "device": "stm32h723vgtx",
             "overrideGDBServerStartedRegex": "GDB server listening on port"
             
