@@ -6,50 +6,49 @@
 #include "stm32h7xx_ll_utils.h"
 
 #ifndef NVIC_PRIORITYGROUP_0
-#define NVIC_PRIORITYGROUP_0                                       \
-    ((uint32_t)0x00000007) /*!< 0 bit  for pre-emption priority, \ \
+#define NVIC_PRIORITYGROUP_0                                         \
+    ((uint32_t)0x00000007) /*!< 0 bit  for pre-emption priority, \ \ \
                                 4 bits for subpriority */
-#define NVIC_PRIORITYGROUP_1                                       \
-    ((uint32_t)0x00000006) /*!< 1 bit  for pre-emption priority, \ \
+#define NVIC_PRIORITYGROUP_1                                         \
+    ((uint32_t)0x00000006) /*!< 1 bit  for pre-emption priority, \ \ \
                                 3 bits for subpriority */
-#define NVIC_PRIORITYGROUP_2                                       \
-    ((uint32_t)0x00000005) /*!< 2 bits for pre-emption priority, \ \
+#define NVIC_PRIORITYGROUP_2                                         \
+    ((uint32_t)0x00000005) /*!< 2 bits for pre-emption priority, \ \ \
                                 2 bits for subpriority */
-#define NVIC_PRIORITYGROUP_3                                       \
-    ((uint32_t)0x00000004) /*!< 3 bits for pre-emption priority, \ \
+#define NVIC_PRIORITYGROUP_3                                         \
+    ((uint32_t)0x00000004) /*!< 3 bits for pre-emption priority, \ \ \
                                 1 bit  for subpriority */
-#define NVIC_PRIORITYGROUP_4                                       \
-    ((uint32_t)0x00000003) /*!< 4 bits for pre-emption priority, \ \
+#define NVIC_PRIORITYGROUP_4                                         \
+    ((uint32_t)0x00000003) /*!< 4 bits for pre-emption priority, \ \ \
                                 0 bit  for subpriority */
 #endif
 
-void SystemClock_Config (void);
+void SystemClock_Config(void);
 
-void system_init (void)
+void system_init(void)
 {
-    LL_APB4_GRP1_EnableClock (LL_APB4_GRP1_PERIPH_SYSCFG);
+    LL_APB4_GRP1_EnableClock(LL_APB4_GRP1_PERIPH_SYSCFG);
 
     /* System interrupt init*/
-    NVIC_SetPriorityGrouping (NVIC_PRIORITYGROUP_4);
+    NVIC_SetPriorityGrouping(NVIC_PRIORITYGROUP_4);
 
     /* SysTick_IRQn interrupt configuration */
-    NVIC_SetPriority (
-        SysTick_IRQn,
-        NVIC_EncodePriority (NVIC_GetPriorityGrouping (), 15, 0));
+    NVIC_SetPriority(SysTick_IRQn,
+                     NVIC_EncodePriority(NVIC_GetPriorityGrouping(), 15, 0));
 
     /* Configure the system clock */
-    SystemClock_Config ();
+    SystemClock_Config();
 
     /*Init GPIO*/
     LL_GPIO_InitTypeDef GPIO_InitStruct = { 0 };
 
     /* GPIO Ports Clock Enable */
-    LL_AHB4_GRP1_EnableClock (LL_AHB4_GRP1_PERIPH_GPIOE);
-    LL_AHB4_GRP1_EnableClock (LL_AHB4_GRP1_PERIPH_GPIOH);
-    LL_AHB4_GRP1_EnableClock (LL_AHB4_GRP1_PERIPH_GPIOB);
+    LL_AHB4_GRP1_EnableClock(LL_AHB4_GRP1_PERIPH_GPIOE);
+    LL_AHB4_GRP1_EnableClock(LL_AHB4_GRP1_PERIPH_GPIOH);
+    LL_AHB4_GRP1_EnableClock(LL_AHB4_GRP1_PERIPH_GPIOB);
 
     /**/
-    LL_GPIO_ResetOutputPin (GPIOE, LL_GPIO_PIN_3);
+    LL_GPIO_ResetOutputPin(GPIOE, LL_GPIO_PIN_3);
 
     /**/
     GPIO_InitStruct.Pin = LL_GPIO_PIN_3;
@@ -57,73 +56,73 @@ void system_init (void)
     GPIO_InitStruct.Speed = LL_GPIO_SPEED_FREQ_LOW;
     GPIO_InitStruct.OutputType = LL_GPIO_OUTPUT_PUSHPULL;
     GPIO_InitStruct.Pull = LL_GPIO_PULL_NO;
-    LL_GPIO_Init (GPIOE, &GPIO_InitStruct);
+    LL_GPIO_Init(GPIOE, &GPIO_InitStruct);
 }
 
 // setup interrupt/trigger rate timer, setup dma(if available)
-void block_transfer_init (void) {}
+void block_transfer_init(void) {}
 
 // output to dac at timer rate, call block_transfer_complete_ISR when transfer
 // of block complete
-void block_transfer_start (void) {}
+void block_transfer_start(void) {}
 
 // swap buffers
-void block_transfer_complete_ISR (void) {}
+void block_transfer_complete_ISR(void) {}
 
 // stop transfer of data
-void block_transfer_end (void) {}
+void block_transfer_end(void) {}
 
-void SystemClock_Config (void)
+void SystemClock_Config(void)
 {
-    LL_FLASH_SetLatency (LL_FLASH_LATENCY_3);
-    while (LL_FLASH_GetLatency () != LL_FLASH_LATENCY_3)
+    LL_FLASH_SetLatency(LL_FLASH_LATENCY_3);
+    while (LL_FLASH_GetLatency() != LL_FLASH_LATENCY_3)
     {
     }
-    LL_PWR_ConfigSupply (LL_PWR_LDO_SUPPLY);
-    LL_PWR_SetRegulVoltageScaling (LL_PWR_REGU_VOLTAGE_SCALE0);
-    while (LL_PWR_IsActiveFlag_VOS () == 0)
+    LL_PWR_ConfigSupply(LL_PWR_LDO_SUPPLY);
+    LL_PWR_SetRegulVoltageScaling(LL_PWR_REGU_VOLTAGE_SCALE0);
+    while (LL_PWR_IsActiveFlag_VOS() == 0)
     {
     }
-    LL_RCC_HSE_Enable ();
+    LL_RCC_HSE_Enable();
 
     /* Wait till HSE is ready */
-    while (LL_RCC_HSE_IsReady () != 1)
+    while (LL_RCC_HSE_IsReady() != 1)
     {
     }
-    LL_RCC_PLL_SetSource (LL_RCC_PLLSOURCE_HSE);
-    LL_RCC_PLL1P_Enable ();
-    LL_RCC_PLL1_SetVCOInputRange (LL_RCC_PLLINPUTRANGE_8_16);
-    LL_RCC_PLL1_SetVCOOutputRange (LL_RCC_PLLVCORANGE_WIDE);
-    LL_RCC_PLL1_SetM (2);
-    LL_RCC_PLL1_SetN (44);
-    LL_RCC_PLL1_SetP (1);
-    LL_RCC_PLL1_SetQ (2);
-    LL_RCC_PLL1_SetR (2);
-    LL_RCC_PLL1_Enable ();
+    LL_RCC_PLL_SetSource(LL_RCC_PLLSOURCE_HSE);
+    LL_RCC_PLL1P_Enable();
+    LL_RCC_PLL1_SetVCOInputRange(LL_RCC_PLLINPUTRANGE_8_16);
+    LL_RCC_PLL1_SetVCOOutputRange(LL_RCC_PLLVCORANGE_WIDE);
+    LL_RCC_PLL1_SetM(2);
+    LL_RCC_PLL1_SetN(44);
+    LL_RCC_PLL1_SetP(1);
+    LL_RCC_PLL1_SetQ(2);
+    LL_RCC_PLL1_SetR(2);
+    LL_RCC_PLL1_Enable();
 
     /* Wait till PLL is ready */
-    while (LL_RCC_PLL1_IsReady () != 1)
+    while (LL_RCC_PLL1_IsReady() != 1)
     {
     }
 
     /* Intermediate AHB prescaler 2 when target frequency clock is higher than
      * 80 MHz */
-    LL_RCC_SetAHBPrescaler (LL_RCC_AHB_DIV_2);
+    LL_RCC_SetAHBPrescaler(LL_RCC_AHB_DIV_2);
 
-    LL_RCC_SetSysClkSource (LL_RCC_SYS_CLKSOURCE_PLL1);
+    LL_RCC_SetSysClkSource(LL_RCC_SYS_CLKSOURCE_PLL1);
 
     /* Wait till System clock is ready */
-    while (LL_RCC_GetSysClkSource () != LL_RCC_SYS_CLKSOURCE_STATUS_PLL1)
+    while (LL_RCC_GetSysClkSource() != LL_RCC_SYS_CLKSOURCE_STATUS_PLL1)
     {
     }
-    LL_RCC_SetSysPrescaler (LL_RCC_SYSCLK_DIV_1);
-    LL_RCC_SetAHBPrescaler (LL_RCC_AHB_DIV_2);
-    LL_RCC_SetAPB1Prescaler (LL_RCC_APB1_DIV_2);
-    LL_RCC_SetAPB2Prescaler (LL_RCC_APB2_DIV_2);
-    LL_RCC_SetAPB3Prescaler (LL_RCC_APB3_DIV_2);
-    LL_RCC_SetAPB4Prescaler (LL_RCC_APB4_DIV_2);
+    LL_RCC_SetSysPrescaler(LL_RCC_SYSCLK_DIV_1);
+    LL_RCC_SetAHBPrescaler(LL_RCC_AHB_DIV_2);
+    LL_RCC_SetAPB1Prescaler(LL_RCC_APB1_DIV_2);
+    LL_RCC_SetAPB2Prescaler(LL_RCC_APB2_DIV_2);
+    LL_RCC_SetAPB3Prescaler(LL_RCC_APB3_DIV_2);
+    LL_RCC_SetAPB4Prescaler(LL_RCC_APB4_DIV_2);
 
-    LL_Init1msTick (550000000);
+    LL_Init1msTick(550000000);
 
-    LL_SetSystemCoreClock (550000000);
+    LL_SetSystemCoreClock(550000000);
 }

@@ -433,12 +433,12 @@
  * execution on the failing line for viewing in a debugger. */
 
 /* *INDENT-OFF* */
-#define configASSERT(x)            \
-    if ((x) == 0)                  \
-    {                              \
-        taskDISABLE_INTERRUPTS (); \
-        for (;;)                   \
-            ;                      \
+#define configASSERT(x)           \
+    if ((x) == 0)                 \
+    {                             \
+        taskDISABLE_INTERRUPTS(); \
+        for (;;)                  \
+            ;                     \
     }
 /* *INDENT-ON* */
 

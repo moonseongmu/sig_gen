@@ -20,3 +20,4 @@ KeepEmptyLines:
   AtStartOfFile: false
 LineEnding: LF
 PenaltyReturnTypeOnItsOwnLine: 0
+SpaceBeforeParens: Custom

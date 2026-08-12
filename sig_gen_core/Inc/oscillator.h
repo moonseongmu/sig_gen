@@ -26,8 +26,8 @@ typedef struct oscillator_t
     bool buffers_swapped;
 } oscillator_t;
 
-void fill_buffer (oscillator_t *oscillator, uint32_t block_size);
-void start_oscillations (float out_freq,
-                         float clock_freq,
-                         oscillator_t *oscillator,
-                         uint32_t block_size);
+void fill_buffer(oscillator_t *oscillator, uint32_t block_size);
+void start_oscillations(float out_freq,
+                        float clock_freq,
+                        oscillator_t *oscillator,
+                        uint32_t block_size);
