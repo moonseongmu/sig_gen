@@ -3,7 +3,7 @@
 #include "dds.h"
 #include <stdint.h>
 
-#define BLOCK_SIZE 512
+constexpr uint32_t BLOCK_SIZE = 512;
 
 typedef enum active_buffer_t
 {
