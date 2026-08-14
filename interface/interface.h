@@ -4,6 +4,8 @@
 
 void system_init(void);
 
+void led_blink(void* pvParameters);
+
 // setup interrupt/trigger rate timer, setup dma(if available)
 void block_transfer_init(void);
 

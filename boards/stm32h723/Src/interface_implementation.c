@@ -1,26 +1,28 @@
+#include "FreeRTOS.h"
 #include "interface.h"
 #include "stm32h7xx.h"
 #include "stm32h7xx_ll_gpio.h"
 #include "stm32h7xx_ll_pwr.h"
 #include "stm32h7xx_ll_rcc.h"
 #include "stm32h7xx_ll_utils.h"
+#include "task.h"
 
 #ifndef NVIC_PRIORITYGROUP_0
-#define NVIC_PRIORITYGROUP_0                                         \
-    ((uint32_t)0x00000007) /*!< 0 bit  for pre-emption priority, \ \ \
-                                4 bits for subpriority */
-#define NVIC_PRIORITYGROUP_1                                         \
-    ((uint32_t)0x00000006) /*!< 1 bit  for pre-emption priority, \ \ \
-                                3 bits for subpriority */
-#define NVIC_PRIORITYGROUP_2                                         \
-    ((uint32_t)0x00000005) /*!< 2 bits for pre-emption priority, \ \ \
-                                2 bits for subpriority */
-#define NVIC_PRIORITYGROUP_3                                         \
-    ((uint32_t)0x00000004) /*!< 3 bits for pre-emption priority, \ \ \
-                                1 bit  for subpriority */
-#define NVIC_PRIORITYGROUP_4                                         \
-    ((uint32_t)0x00000003) /*!< 4 bits for pre-emption priority, \ \ \
-                                0 bit  for subpriority */
+#define NVIC_PRIORITYGROUP_0                                           \
+    ((uint32_t)0x00000007) /*!< 0 bit  for pre-emption priority, \ \ \ \
+                              \ \ \ \ \ \ \ 4 bits for subpriority */
+#define NVIC_PRIORITYGROUP_1                                           \
+    ((uint32_t)0x00000006) /*!< 1 bit  for pre-emption priority, \ \ \ \
+                              \ \ \ \ \ \ \ 3 bits for subpriority */
+#define NVIC_PRIORITYGROUP_2                                           \
+    ((uint32_t)0x00000005) /*!< 2 bits for pre-emption priority, \ \ \ \
+                              \ \ \ \ \ \ \ 2 bits for subpriority */
+#define NVIC_PRIORITYGROUP_3                                           \
+    ((uint32_t)0x00000004) /*!< 3 bits for pre-emption priority, \ \ \ \
+                              \ \ \ \ \ \ \ 1 bit  for subpriority */
+#define NVIC_PRIORITYGROUP_4                                           \
+    ((uint32_t)0x00000003) /*!< 4 bits for pre-emption priority, \ \ \ \
+                              \ \ \ \ \ \ \ 0 bit  for subpriority */
 #endif
 
 void SystemClock_Config(void);
@@ -71,6 +73,16 @@ void block_transfer_complete_ISR(void) {}
 
 // stop transfer of data
 void block_transfer_end(void) {}
+
+void led_blink([[maybe_unused]] void *pvParameters)
+{
+    TickType_t prev_wake_time = xTaskGetTickCount();
+    while (1)
+    {
+        LL_GPIO_TogglePin(GPIOE, LL_GPIO_PIN_3);
+        xTaskDelayUntil(&prev_wake_time, pdMS_TO_TICKS(500));
+    }
+}
 
 void SystemClock_Config(void)
 {
