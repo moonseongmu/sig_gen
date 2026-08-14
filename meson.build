@@ -1,4 +1,4 @@
-project('tufo_afm', 'c', meson_version: '>=1.1', default_options: ['c_std=c23'])
+project('sig_gen', 'c', meson_version: '>=1.1', default_options: ['c_std=c23'])
 
 src=[]
 inc=[]

@@ -1,9 +1,5 @@
-src+=files(
-'Src/main.c',
-'Src/dds.c',
-'Src/oscillator.c'
-)
+src += files('dds.c', 'main.c', 'oscillator.c')
 
-sig_gen_core_inc=include_directories('Inc')
+sig_gen_core_inc = include_directories('.')
 
-inc+=[sig_gen_core_inc]
+inc += [sig_gen_core_inc]

@@ -1,8 +1,6 @@
 #pragma once
 
 #include "dds.h"
-#include "interface.h"
-#include <stdbool.h>
 #include <stdint.h>
 
 #define BLOCK_SIZE 512

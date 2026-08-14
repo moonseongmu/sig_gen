@@ -1,4 +1,6 @@
 #include "dds.h"
+#include <stdint.h>
+#include <tgmath.h>
 
 static const uint16_t sine_lut[4096];
 

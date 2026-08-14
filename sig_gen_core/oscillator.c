@@ -1,4 +1,7 @@
 #include "oscillator.h"
+#include "dds.h"
+#include "interface.h"
+#include <stdint.h>
 
 void start_oscillations(float out_freq,
                         float clock_freq,
