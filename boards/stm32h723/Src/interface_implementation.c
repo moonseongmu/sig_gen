@@ -1,3 +1,22 @@
+/*
+ *Copyright (C) 2026  Moon Seongmu
+ *
+ *This program is free software: you can redistribute it and/or modify
+ *it under the terms of the GNU General Public License as published by
+ *the Free Software Foundation, either version 3 of the License, or any later
+ *version.
+ *
+ *This program is distributed in the hope that it will be useful,
+ *but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *GNU General Public License for more details.
+ *
+ *You should have received a copy of the GNU General Public License along with
+ *this program.  If not, see <https://www.gnu.org/licenses/>.
+ *
+ *SPDX-License-Identifier: GPL-3.0-or-later
+ */
+
 #include "FreeRTOS.h"
 #include "interface.h"
 #include "stm32h7xx.h"
@@ -8,20 +27,20 @@
 #include "task.h"
 
 #ifndef NVIC_PRIORITYGROUP_0
-#define NVIC_PRIORITYGROUP_0                                           \
-    ((uint32_t)0x00000007) /*!< 0 bit  for pre-emption priority, \ \ \ \
+#define NVIC_PRIORITYGROUP_0                                             \
+    ((uint32_t)0x00000007) /*!< 0 bit  for pre-emption priority, \ \ \ \ \
                               \ \ \ \ \ \ \ 4 bits for subpriority */
-#define NVIC_PRIORITYGROUP_1                                           \
-    ((uint32_t)0x00000006) /*!< 1 bit  for pre-emption priority, \ \ \ \
+#define NVIC_PRIORITYGROUP_1                                             \
+    ((uint32_t)0x00000006) /*!< 1 bit  for pre-emption priority, \ \ \ \ \
                               \ \ \ \ \ \ \ 3 bits for subpriority */
-#define NVIC_PRIORITYGROUP_2                                           \
-    ((uint32_t)0x00000005) /*!< 2 bits for pre-emption priority, \ \ \ \
+#define NVIC_PRIORITYGROUP_2                                             \
+    ((uint32_t)0x00000005) /*!< 2 bits for pre-emption priority, \ \ \ \ \
                               \ \ \ \ \ \ \ 2 bits for subpriority */
-#define NVIC_PRIORITYGROUP_3                                           \
-    ((uint32_t)0x00000004) /*!< 3 bits for pre-emption priority, \ \ \ \
+#define NVIC_PRIORITYGROUP_3                                             \
+    ((uint32_t)0x00000004) /*!< 3 bits for pre-emption priority, \ \ \ \ \
                               \ \ \ \ \ \ \ 1 bit  for subpriority */
-#define NVIC_PRIORITYGROUP_4                                           \
-    ((uint32_t)0x00000003) /*!< 4 bits for pre-emption priority, \ \ \ \
+#define NVIC_PRIORITYGROUP_4                                             \
+    ((uint32_t)0x00000003) /*!< 4 bits for pre-emption priority, \ \ \ \ \
                               \ \ \ \ \ \ \ 0 bit  for subpriority */
 #endif
 
