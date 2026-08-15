@@ -40,11 +40,13 @@ typedef struct oscillator_t
 
     active_buffer_t active_buffer;
 
+    float out_freq;
+    float clock_freq;
+
     bool buffers_swapped;
 } oscillator_t;
 
-void fill_buffer(oscillator_t *oscillator, uint32_t block_size);
-void start_oscillations(float out_freq,
-                        float clock_freq,
-                        oscillator_t *oscillator,
-                        uint32_t block_size);
+void fill_buffer(oscillator_t *oscillator);
+void oscillator_task(void *params);
+
+extern oscillator_t oscillator;

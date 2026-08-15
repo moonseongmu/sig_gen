@@ -19,5 +19,6 @@ KeepEmptyLines:
   AtStartOfBlock: false
   AtStartOfFile: false
 LineEnding: LF
-PenaltyReturnTypeOnItsOwnLine: 0
+PenaltyReturnTypeOnItsOwnLine: 1000000
+PenaltyBreakAssignment: 1000
 SpaceBeforeParens: Custom

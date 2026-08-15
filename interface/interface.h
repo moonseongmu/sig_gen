@@ -21,18 +21,31 @@
 
 #include <stdint.h>
 
+//------------ port to implement ------------//
+
 void system_init(void);
 
+// led blnk task
 void led_blink(void *pvParameters);
 
 // setup interrupt/trigger rate timer, setup dma(if available)
 void block_transfer_init(void);
 
-// output to dac at timer rate, call block_transfer_complete_ISR
-// when transfer of block complete
+// output to dac at timer rate
 void block_transfer_start(void);
-void block_transfer_complete_ISR(void); // swap buffers
-void block_transfer_end(void);          // stop transfer of data
 
-void dac_init(void);             // setup dac
-void dac_update(uint16_t value); // send new value to dac
+// stop transfer of data
+void block_transfer_end(void);
+
+// setup dac
+void dac_init(void);
+
+// send new value to dac
+void dac_update(uint16_t value);
+
+//------------ implemented in app code ------------//
+
+// implemented in oscillator.c
+// swaps buffers & gives notification to oscillation_task & yields
+// call from isr that fires when block transfer completes
+void block_transfer_complete_ISR(void);

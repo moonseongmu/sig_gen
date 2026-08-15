@@ -22,30 +22,48 @@
 #include "interface.h"
 #include <stdint.h>
 
-void start_oscillations(float out_freq,
-                        float clock_freq,
-                        oscillator_t *oscillator,
-                        uint32_t block_size)
+//clang-format off
+#include "FreeRTOS.h"
+#include "task.h"
+//clang-format on
+
+oscillator_t oscillator = {
+    .buffer_1 = {},
+    .buffer_2 = {},
+    .dds = { .phase_accumulator = 0, .tuning_word = 0, .value = 0 },
+    .out_freq = 0,
+    .clock_freq = 0,
+    .buffers_swapped = false
+};
+
+void oscillator_task(void *params)
 {
-    // start timer and dma dac, interrupt calls when buffer filled/finished
-    // outputing
+    oscillator_t *oscillator = (oscillator_t *)params;
+
+    // start timer and dma dac,
+    // interrupt calls when buffer filled/finished  outputing
     block_transfer_init();
-    // init cosdds with sweep starting frequency + starting phase 0
-    oscillator->dds.tuning_word = freq_to_tuning_word(out_freq, clock_freq);
+    oscillator->dds.tuning_word = freq_to_tuning_word(oscillator->out_freq,
+                                                      oscillator->clock_freq);
     oscillator->dds.phase_accumulator = 0;
 
     block_transfer_start();
 
-    while (oscillator->buffers_swapped == true)
+    while (1)
     {
-        fill_buffer(oscillator, block_size);
-        oscillator->buffers_swapped = false;
+        // block task until block_transfer_complete_isr unblocks
+        ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+        if (oscillator->buffers_swapped == true)
+        {
+            fill_buffer(oscillator);
+            oscillator->buffers_swapped = false;
+        }
     }
 }
 
-void fill_buffer(oscillator_t *oscillator, uint32_t block_size)
+void fill_buffer(oscillator_t *oscillator)
 {
-    for (uint32_t i = 0; i < block_size; i++)
+    for (uint32_t i = 0; i < BLOCK_SIZE; i++)
     {
         dds_calculate(&(oscillator->dds));
         switch (oscillator->active_buffer)
@@ -56,4 +74,24 @@ void fill_buffer(oscillator_t *oscillator, uint32_t block_size)
                 oscillator->buffer_2[i] = oscillator->dds.value;
         }
     }
+}
+
+void block_transfer_complete_ISR(void)
+{
+    // swap buffers & set buffers swapped var
+    switch (oscillator.active_buffer)
+    {
+        case buffer_1:
+            oscillator.active_buffer = buffer_2;
+        case buffer_2:
+            oscillator.active_buffer = buffer_1;
+    }
+    oscillator.buffers_swapped = true;
+
+    // give notification to oscillator task
+    BaseType_t higher_priority_task_woken = pdFALSE;
+    vTaskNotifyGiveFromISR(xTaskGetHandle("oscillator_task"),
+                           &higher_priority_task_woken);
+
+    portYIELD_FROM_ISR(higher_priority_task_woken);
 }

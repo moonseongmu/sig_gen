@@ -17,21 +17,31 @@
  *SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-#include "FreeRTOS.h"
 #include "interface.h"
+#include "oscillator.h"
+
+//clang-format off
+#include "FreeRTOS.h"
 #include "task.h"
+//clang-format on
 
 int main(void)
 {
     system_init();
 
-    TaskHandle_t led_blink_handle = NULL;
     xTaskCreate(led_blink,
                 "led_blink",
                 configMINIMAL_STACK_SIZE,
                 NULL,
                 1,
-                &led_blink_handle);
+                NULL);
+
+    xTaskCreate(oscillator_task,
+                "oscillator_task",
+                512,
+                (void *)&oscillator,
+                7,
+                NULL);
 
     vTaskStartScheduler();
     while (1)
