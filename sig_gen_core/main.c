@@ -21,7 +21,7 @@
 #include "oscillator.h"
 
 //clang-format off
-#include "FreeRTOS.h"
+#include "FreeRTOS.h" // IWYU pragma: keep
 #include "task.h"
 //clang-format on
 
