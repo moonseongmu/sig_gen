@@ -19,32 +19,7 @@
 
 #pragma once
 
-#include "dds.h"
-#include <stdint.h>
-
-constexpr uint32_t BLOCK_SIZE = 512;
-
-typedef enum active_buffer_t
-{
-    buffer_1,
-    buffer_2
-} active_buffer_t; // buffer used for calculations, not currently being output
-                   // by dac
-
-typedef struct oscillator_t
-{
-    uint16_t buffer_1[BLOCK_SIZE];
-    uint16_t buffer_2[BLOCK_SIZE];
-
-    dds_t dds;
-
-    active_buffer_t active_buffer;
-
-    float out_freq;
-    float clock_freq;
-
-    bool buffers_swapped;
-} oscillator_t;
+#include "interface.h"
 
 void fill_buffer(oscillator_t *oscillator);
 void oscillator_task(void *params);

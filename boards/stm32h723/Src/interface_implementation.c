@@ -19,9 +19,13 @@
 
 #include "interface.h"
 #include "stm32h7xx.h" // IWYU pragma: keep
+#include "stm32h7xx_ll_dac.h"
+#include "stm32h7xx_ll_dma.h"
+#include "stm32h7xx_ll_dmamux.h"
 #include "stm32h7xx_ll_gpio.h"
 #include "stm32h7xx_ll_pwr.h"
 #include "stm32h7xx_ll_rcc.h"
+#include "stm32h7xx_ll_tim.h"
 #include "stm32h7xx_ll_utils.h"
 
 //clang-format off
@@ -63,8 +67,6 @@ void system_init(void)
 
     /* GPIO Ports Clock Enable */
     LL_AHB4_GRP1_EnableClock(LL_AHB4_GRP1_PERIPH_GPIOE);
-    LL_AHB4_GRP1_EnableClock(LL_AHB4_GRP1_PERIPH_GPIOH);
-    LL_AHB4_GRP1_EnableClock(LL_AHB4_GRP1_PERIPH_GPIOB);
 
     /**/
     LL_GPIO_ResetOutputPin(GPIOE, LL_GPIO_PIN_3);
@@ -79,10 +81,80 @@ void system_init(void)
 }
 
 // setup interrupt/trigger rate timer, setup dma(if available)
-void block_transfer_init(void) {}
+void block_transfer_init(void)
+{
+    // init timer
+    // timer input clock is 275Mhz
+    LL_APB2_GRP1_EnableClock(LL_APB2_GRP1_PERIPH_TIM8);
+    LL_TIM_InitTypeDef TIM8_init_struct = {
+        .Prescaler = 0,
+        .ClockDivision = LL_TIM_CLOCKDIVISION_DIV1,
+        .CounterMode = LL_TIM_COUNTERMODE_UP,
+        .Autoreload = 275 - 1, // overflow at 1MHz
+        .RepetitionCounter = 0
+    };
+    LL_TIM_Init(TIM8, &TIM8_init_struct);
+    LL_TIM_EnableUpdateEvent(TIM8);
+    LL_TIM_SetUpdateSource(TIM8, LL_TIM_UPDATESOURCE_COUNTER);
+    LL_TIM_SetTriggerOutput(TIM8, LL_TIM_TRGO_UPDATE);
+
+    // enable gpio pin for dac
+    LL_AHB4_GRP1_EnableClock(LL_AHB4_GRP1_PERIPH_GPIOA);
+    LL_GPIO_ResetOutputPin(GPIOA, LL_GPIO_PIN_4);
+    LL_GPIO_InitTypeDef dac_pin_init_struct = {
+        .Pin = LL_GPIO_PIN_4,
+        .Mode = LL_GPIO_MODE_ANALOG,
+        .Speed = LL_GPIO_SPEED_FREQ_LOW,
+        .OutputType = LL_GPIO_OUTPUT_PUSHPULL,
+        .Pull = LL_GPIO_PULL_NO
+    };
+    LL_GPIO_Init(GPIOA, &dac_pin_init_struct);
+
+    // init dac
+    LL_APB1_GRP1_EnableClock(LL_APB1_GRP1_PERIPH_DAC12);
+    LL_DAC_InitTypeDef dac_init_struct = {
+        .TriggerSource = LL_DAC_TRIGGER_TIM8_TRGO,
+        .OutputMode = LL_DAC_OUTPUT_MODE_NORMAL,
+        .OutputBuffer = LL_DAC_OUTPUT_BUFFER_ENABLE,
+        .OutputConnection = LL_DAC_OUTPUT_CONNECT_GPIO,
+        .WaveAutoGeneration = LL_DAC_WAVEGENERATION_NONE
+    };
+
+    LL_DAC_Init(DAC1, LL_DAC_CHANNEL_1, &dac_init_struct);
+    LL_DAC_EnableTrigger(DAC1, LL_DAC_CHANNEL_1);
+    LL_DAC_EnableDMAReq(DAC1, LL_DAC_CHANNEL_1);
+
+    // init dma
+    LL_AHB1_GRP1_EnableClock(LL_AHB1_GRP1_PERIPH_DMA1);
+    LL_DMA_InitTypeDef dma_init_struct = {
+        .PeriphOrM2MSrcAddress
+        = LL_DAC_DMA_GetRegAddr(DAC1,
+                                LL_DAC_CHANNEL_1,
+                                LL_DAC_DMA_REG_DATA_12BITS_RIGHT_ALIGNED),
+        .Direction = LL_DMA_DIRECTION_MEMORY_TO_PERIPH,
+        .PeriphOrM2MSrcIncMode = LL_DMA_PERIPH_NOINCREMENT,
+        .MemoryOrM2MDstIncMode = LL_DMA_MEMORY_INCREMENT,
+        .PeriphOrM2MSrcDataSize = LL_DMA_PDATAALIGN_WORD,
+        .MemoryOrM2MDstDataSize = LL_DMA_MDATAALIGN_HALFWORD,
+        .NbData = BLOCK_SIZE,
+        .PeriphRequest = LL_DMAMUX1_REQ_DAC1_CH1,
+        .Priority = LL_DMA_PRIORITY_VERYHIGH,
+        .FIFOMode = LL_DMA_FIFOMODE_DISABLE,
+    };
+    LL_DMA_Init(DMA1, LL_DMA_STREAM_0, &dma_init_struct);
+    LL_DMA_EnableDoubleBufferMode(DMA1, LL_DMA_STREAM_0);
+    LL_DMA_SetMemoryAddress(DMA1, LL_DMA_STREAM_0, &(oscillator->buffer1));
+    LL_DMA_SetMemory1Address(DMA1, LL_DMA_STREAM_0, &(oscillator->buffer2))
+}
 
 // output to dac at timer rate
-void block_transfer_start(void) {}
+void block_transfer_start(void)
+{
+    // enable timer
+    LL_TIM_EnableCounter(TIM8);
+    LL_DMA_EnableStream(DMA1, LL_DMA_STREAM_0);
+    LL_DAC_Enable(DAC1, LL_DAC_CHANNEL_1);
+}
 
 // stop transfer of data
 void block_transfer_end(void) {}

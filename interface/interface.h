@@ -21,6 +21,37 @@
 
 #include <stdint.h>
 
+constexpr uint32_t BLOCK_SIZE = 512;
+
+// buffer used for calculations, not currently being output by dac
+typedef enum active_buffer_t
+{
+    buffer_1,
+    buffer_2
+} active_buffer_t;
+
+typedef struct
+{
+    uint32_t phase_accumulator;
+    uint32_t tuning_word;
+    uint16_t value;
+} dds_t;
+
+typedef struct oscillator_t
+{
+    uint16_t buffer_1[BLOCK_SIZE];
+    uint16_t buffer_2[BLOCK_SIZE];
+
+    dds_t dds;
+
+    active_buffer_t active_buffer;
+
+    float out_freq;
+    float clock_freq;
+
+    bool buffers_swapped;
+} oscillator_t;
+
 //------------ port to implement ------------//
 
 void system_init(void);
@@ -37,15 +68,11 @@ void block_transfer_start(void);
 // stop transfer of data
 void block_transfer_end(void);
 
-// setup dac
-void dac_init(void);
-
-// send new value to dac
-void dac_update(uint16_t value);
-
 //------------ implemented in app code ------------//
 
 // implemented in oscillator.c
 // swaps buffers & gives notification to oscillation_task & yields
 // call from isr that fires when block transfer completes
 void block_transfer_complete_ISR(void);
+
+oscillator_t *get_oscillator(void);
