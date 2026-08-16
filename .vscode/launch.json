@@ -6,7 +6,7 @@
     "configurations": [
         {
             "cwd": "${workspaceFolder}",
-            "executable": "./build/tufo-afm.elf",
+            "executable": "./build/sig_gen.elf",
             "name": "OpenOCD",
             "request": "launch",
             "type": "cortex-debug",
@@ -26,7 +26,7 @@
         {
             "name": "PyOCD",
             "cwd": "${workspaceFolder}",
-            "executable": "./build/tufo-afm.elf",
+            "executable": "./build/sig_gen.elf",
             "request": "launch",
             "type": "cortex-debug",
             "runToEntryPoint": "main",

@@ -21,4 +21,6 @@ KeepEmptyLines:
 LineEnding: LF
 PenaltyReturnTypeOnItsOwnLine: 1000000
 PenaltyBreakAssignment: 1000
+PenaltyExcessCharacter: 100
+PenaltyBreakOpenParenthesis: 100000
 SpaceBeforeParens: Custom

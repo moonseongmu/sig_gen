@@ -20,7 +20,7 @@ src+=files(
 )
 
 src+=files(
-'Src\startup_stm32h723xx.s',
+'Src\startup_stm32h723xx.c',
 'Src\stm32h7xx_it.c',
 'Src\syscalls.c',
 'Src\sysmem.c',

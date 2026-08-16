@@ -6,7 +6,7 @@ inc = []
 c_args = ['-Wall', '-Wextra']
 
 map_file_arg = '-Wl,-Map=' + meson.project_name() + '.map'
-c_link_args = [map_file_arg]
+c_link_args = [map_file_arg, '-nostartfiles']
 
 subdir('sig_gen_core')
 subdir('interface')

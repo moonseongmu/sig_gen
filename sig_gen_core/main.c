@@ -38,7 +38,7 @@ int main(void)
 
     xTaskCreate(oscillator_task,
                 "oscillator_task",
-                512,
+                2048,
                 (void *)&oscillator,
                 7,
                 NULL);
