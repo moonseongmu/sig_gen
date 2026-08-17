@@ -21,6 +21,8 @@
 
 #include "interface.h"
 
+// buffer used for calculations, not currently being output by dac
+
 void fill_buffer(oscillator_t *oscillator);
 void oscillator_task(void *params);
 

@@ -23,19 +23,18 @@
 
 constexpr uint32_t BLOCK_SIZE = 512;
 
-// buffer used for calculations, not currently being output by dac
-typedef enum active_buffer_t
-{
-    buffer_1,
-    buffer_2
-} active_buffer_t;
-
 typedef struct
 {
     uint32_t phase_accumulator;
     uint32_t tuning_word;
     uint16_t value;
 } dds_t;
+
+typedef enum active_buffer_t
+{
+    buffer_1,
+    buffer_2
+} active_buffer_t;
 
 typedef struct oscillator_t
 {
@@ -60,7 +59,7 @@ void system_init(void);
 void led_blink(void *pvParameters);
 
 // setup interrupt/trigger rate timer, setup dma(if available)
-void block_transfer_init(void);
+void block_transfer_init(oscillator_t *oscillator);
 
 // output to dac at timer rate
 void block_transfer_start(void);

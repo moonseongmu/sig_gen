@@ -42,7 +42,7 @@ void oscillator_task(void *params)
 
     // start timer and dma dac,
     // interrupt calls when buffer filled/finished  outputing
-    block_transfer_init();
+    block_transfer_init(oscillator);
     oscillator->dds.tuning_word = freq_to_tuning_word(oscillator->out_freq,
                                                       oscillator->clock_freq);
     oscillator->dds.phase_accumulator = 0;

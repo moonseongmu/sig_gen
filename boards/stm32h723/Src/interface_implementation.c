@@ -81,7 +81,7 @@ void system_init(void)
 }
 
 // setup interrupt/trigger rate timer, setup dma(if available)
-void block_transfer_init(void)
+void block_transfer_init(oscillator_t *oscillator)
 {
     // init timer
     // timer input clock is 275Mhz
@@ -143,8 +143,22 @@ void block_transfer_init(void)
     };
     LL_DMA_Init(DMA1, LL_DMA_STREAM_0, &dma_init_struct);
     LL_DMA_EnableDoubleBufferMode(DMA1, LL_DMA_STREAM_0);
-    LL_DMA_SetMemoryAddress(DMA1, LL_DMA_STREAM_0, &(oscillator->buffer1));
-    LL_DMA_SetMemory1Address(DMA1, LL_DMA_STREAM_0, &(oscillator->buffer2))
+    LL_DMA_SetMemoryAddress(DMA1,
+                            LL_DMA_STREAM_0,
+                            (uint32_t)(uintptr_t)oscillator->buffer_1);
+    LL_DMA_SetMemory1Address(DMA1,
+                             LL_DMA_STREAM_0,
+                             (uint32_t)(uintptr_t)oscillator->buffer_2);
+
+    // enable transfer complete interrupt
+    LL_DMA_EnableIT_TC(DMA1, LL_DMA_STREAM_0);
+
+    // set output frequency and system clock frequency !!!FOR TESTING!!!
+
+    // timer output frequecy is 1MHz
+    oscillator->clock_freq = 1000000;
+
+    oscillator->out_freq = 100;
 }
 
 // output to dac at timer rate
@@ -152,12 +166,28 @@ void block_transfer_start(void)
 {
     // enable timer
     LL_TIM_EnableCounter(TIM8);
+    // enable dma and irq
     LL_DMA_EnableStream(DMA1, LL_DMA_STREAM_0);
+    NVIC_SetPriority(DMA1_Stream0_IRQn, 4);
+    NVIC_EnableIRQ(DMA1_Stream0_IRQn);
+    // enable dac
     LL_DAC_Enable(DAC1, LL_DAC_CHANNEL_1);
 }
 
 // stop transfer of data
-void block_transfer_end(void) {}
+void block_transfer_end(void)
+{
+    LL_TIM_DisableCounter(TIM8);
+    LL_DMA_DisableStream(DMA1, LL_DMA_STREAM_0);
+    NVIC_DisableIRQ(DMA1_Stream0_IRQn);
+    LL_DAC_Disable(DAC1, LL_DAC_CHANNEL_1);
+}
+
+void DMA1_Stream0_IRQHandler(void)
+{
+    LL_DMA_ClearFlag_TC0(DMA1);
+    block_transfer_complete_ISR();
+}
 
 void led_blink(void *pvParameters [[maybe_unused]])
 {
