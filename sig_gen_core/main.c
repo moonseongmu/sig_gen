@@ -38,9 +38,9 @@ int main(void)
 
     xTaskCreate(oscillator_task,
                 "oscillator_task",
-                2048,
+                configMINIMAL_STACK_SIZE,
                 (void *)&oscillator,
-                7,
+                5,
                 NULL);
 
     vTaskStartScheduler();
