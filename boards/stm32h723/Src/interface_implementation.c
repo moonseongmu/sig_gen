@@ -189,7 +189,7 @@ void DMA1_Stream0_IRQHandler(void)
     block_transfer_complete_ISR();
 }
 
-void led_blink(void *pvParameters [[maybe_unused]])
+void led_blink(void *params [[maybe_unused]])
 {
     TickType_t prev_wake_time = xTaskGetTickCount();
     while (1)

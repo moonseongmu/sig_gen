@@ -95,8 +95,3 @@ void block_transfer_complete_ISR(void)
 
     portYIELD_FROM_ISR(higher_priority_task_woken);
 }
-
-oscillator_t *get_oscillator(void)
-{
-    return &oscillator;
-}

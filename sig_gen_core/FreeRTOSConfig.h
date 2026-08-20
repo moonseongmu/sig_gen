@@ -314,6 +314,9 @@
  * catch pointer corruptions. Defaults to 0 if left undefined. */
 #define configENABLE_HEAP_PROTECTOR 0
 
+/* enable stack end for rtos aware debugging */
+#define configRECORD_STACK_HIGH_ADDRESS 1
+
 /******************************************************************************/
 /* Interrupt nesting behaviour configuration.
  * *********************************/
@@ -619,7 +622,7 @@
 
 /* Set configENABLE_FPU to 1 to enable the Floating Point Unit (FPU), or 0
  * to leave the Floating Point Unit disabled. */
-// #define configENABLE_FPU                  1
+#define configENABLE_FPU 1
 
 /* Set configENABLE_MVE to 1 to enable the M-Profile Vector Extension (MVE)
  * support, or 0 to leave the MVE support disabled. This option is only
