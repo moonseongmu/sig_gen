@@ -242,6 +242,13 @@ SECTIONS
     . = ALIGN(8);
   } >DTCMRAM
 
+  .ram_section :
+  {
+    . = ALIGN(4);
+    *(.oscillator_struct);
+    . = ALIGN(4);
+  } >RAM_D1
+
 
 
   /* Remove information from the standard libraries */

@@ -22,11 +22,13 @@
 #include "interface.h"
 #include <stdint.h>
 
+// FreeRTOS.h needs to be called first
 //clang-format off
 #include "FreeRTOS.h" // IWYU pragma: keep
 #include "task.h"
 //clang-format on
 
+[[gnu::section(".oscillator_struct")]]
 oscillator_t oscillator = {
     .buffer_1 = {},
     .buffer_2 = {},

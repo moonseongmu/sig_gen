@@ -42,7 +42,6 @@ int main(void)
                 (void *)&oscillator,
                 5,
                 NULL);
-
     vTaskStartScheduler();
     while (1)
     {

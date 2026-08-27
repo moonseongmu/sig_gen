@@ -21,6 +21,7 @@
 
 #include <stdint.h>
 
+// defines
 constexpr uint32_t BLOCK_SIZE = 512;
 
 typedef struct
@@ -73,5 +74,3 @@ void block_transfer_end(void);
 // swaps buffers & gives notification to oscillation_task & yields
 // call from isr that fires when block transfer completes
 void block_transfer_complete_ISR(void);
-
-oscillator_t *get_oscillator(void);

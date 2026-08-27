@@ -28,6 +28,7 @@
 #include "stm32h7xx_ll_tim.h"
 #include "stm32h7xx_ll_utils.h"
 
+// FreeRTOS.h needs to be called first
 //clang-format off
 #include "FreeRTOS.h" // IWYU pragma: keep
 #include "task.h"
@@ -68,16 +69,16 @@ void system_init(void)
     /* GPIO Ports Clock Enable */
     LL_AHB4_GRP1_EnableClock(LL_AHB4_GRP1_PERIPH_GPIOE);
 
-    /**/
     LL_GPIO_ResetOutputPin(GPIOE, LL_GPIO_PIN_3);
 
-    /**/
     GPIO_InitStruct.Pin = LL_GPIO_PIN_3;
     GPIO_InitStruct.Mode = LL_GPIO_MODE_OUTPUT;
     GPIO_InitStruct.Speed = LL_GPIO_SPEED_FREQ_LOW;
     GPIO_InitStruct.OutputType = LL_GPIO_OUTPUT_PUSHPULL;
     GPIO_InitStruct.Pull = LL_GPIO_PULL_NO;
     LL_GPIO_Init(GPIOE, &GPIO_InitStruct);
+
+    __enable_irq();
 }
 
 // setup interrupt/trigger rate timer, setup dma(if available)
@@ -94,6 +95,7 @@ void block_transfer_init(oscillator_t *oscillator)
         .RepetitionCounter = 0
     };
     LL_TIM_Init(TIM8, &TIM8_init_struct);
+    LL_TIM_EnableARRPreload(TIM8);
     LL_TIM_EnableUpdateEvent(TIM8);
     LL_TIM_SetUpdateSource(TIM8, LL_TIM_UPDATESOURCE_COUNTER);
     LL_TIM_SetTriggerOutput(TIM8, LL_TIM_TRGO_UPDATE);
@@ -134,7 +136,7 @@ void block_transfer_init(oscillator_t *oscillator)
         .Direction = LL_DMA_DIRECTION_MEMORY_TO_PERIPH,
         .PeriphOrM2MSrcIncMode = LL_DMA_PERIPH_NOINCREMENT,
         .MemoryOrM2MDstIncMode = LL_DMA_MEMORY_INCREMENT,
-        .PeriphOrM2MSrcDataSize = LL_DMA_PDATAALIGN_WORD,
+        .PeriphOrM2MSrcDataSize = LL_DMA_PDATAALIGN_HALFWORD,
         .MemoryOrM2MDstDataSize = LL_DMA_MDATAALIGN_HALFWORD,
         .NbData = BLOCK_SIZE,
         .PeriphRequest = LL_DMAMUX1_REQ_DAC1_CH1,
@@ -166,12 +168,12 @@ void block_transfer_start(void)
 {
     // enable timer
     LL_TIM_EnableCounter(TIM8);
+    // enable dac
+    LL_DAC_Enable(DAC1, LL_DAC_CHANNEL_1);
     // enable dma and irq
     LL_DMA_EnableStream(DMA1, LL_DMA_STREAM_0);
     NVIC_SetPriority(DMA1_Stream0_IRQn, 4);
     NVIC_EnableIRQ(DMA1_Stream0_IRQn);
-    // enable dac
-    LL_DAC_Enable(DAC1, LL_DAC_CHANNEL_1);
 }
 
 // stop transfer of data
