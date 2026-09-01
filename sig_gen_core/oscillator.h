@@ -21,7 +21,13 @@
 
 #include "interface.h"
 
-// buffer used for calculations, not currently being output by dac
+// FreeRTOS.h needs to be called first
+//clang-format off
+#include "FreeRTOS.h" // IWYU pragma: keep
+#include "task.h"
+//clang-format on
+
+extern TaskHandle_t oscillator_task_handle;
 
 void fill_buffer(oscillator_t *oscillator);
 void oscillator_task(void *params);

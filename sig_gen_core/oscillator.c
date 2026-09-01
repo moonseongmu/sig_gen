@@ -35,8 +35,11 @@ oscillator_t oscillator = {
     .dds = { .phase_accumulator = 0, .tuning_word = 0, .value = 0 },
     .out_freq = 0,
     .clock_freq = 0,
-    .buffers_swapped = false
+    .buffers_swapped = false,
+    .active_buffer = buffer_2
 };
+
+TaskHandle_t oscillator_task_handle = NULL;
 
 void oscillator_task(void *params)
 {
@@ -72,8 +75,10 @@ void fill_buffer(oscillator_t *oscillator)
         {
             case buffer_1:
                 oscillator->buffer_1[i] = oscillator->dds.value;
+                break;
             case buffer_2:
                 oscillator->buffer_2[i] = oscillator->dds.value;
+                break;
         }
     }
 }
@@ -85,14 +90,16 @@ void block_transfer_complete_ISR(void)
     {
         case buffer_1:
             oscillator.active_buffer = buffer_2;
+            break;
         case buffer_2:
             oscillator.active_buffer = buffer_1;
+            break;
     }
     oscillator.buffers_swapped = true;
 
     // give notification to oscillator task
     BaseType_t higher_priority_task_woken = pdFALSE;
-    vTaskNotifyGiveFromISR(xTaskGetHandle("oscillator_task"),
+    vTaskNotifyGiveFromISR(oscillator_task_handle,
                            &higher_priority_task_woken);
 
     portYIELD_FROM_ISR(higher_priority_task_woken);

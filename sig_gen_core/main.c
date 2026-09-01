@@ -41,7 +41,7 @@ int main(void)
                 configMINIMAL_STACK_SIZE,
                 (void *)&oscillator,
                 5,
-                NULL);
+                &oscillator_task_handle);
     vTaskStartScheduler();
     while (1)
     {

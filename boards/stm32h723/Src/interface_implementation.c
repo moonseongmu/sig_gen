@@ -103,23 +103,19 @@ void block_transfer_init(oscillator_t *oscillator)
     // enable gpio pin for dac
     LL_AHB4_GRP1_EnableClock(LL_AHB4_GRP1_PERIPH_GPIOA);
     LL_GPIO_ResetOutputPin(GPIOA, LL_GPIO_PIN_4);
-    LL_GPIO_InitTypeDef dac_pin_init_struct = {
-        .Pin = LL_GPIO_PIN_4,
-        .Mode = LL_GPIO_MODE_ANALOG,
-        .Speed = LL_GPIO_SPEED_FREQ_LOW,
-        .OutputType = LL_GPIO_OUTPUT_PUSHPULL,
-        .Pull = LL_GPIO_PULL_NO
-    };
+    LL_GPIO_InitTypeDef dac_pin_init_struct = { .Pin = LL_GPIO_PIN_4,
+                                                .Mode = LL_GPIO_MODE_ANALOG,
+                                                .Pull = LL_GPIO_PULL_NO };
     LL_GPIO_Init(GPIOA, &dac_pin_init_struct);
 
     // init dac
     LL_APB1_GRP1_EnableClock(LL_APB1_GRP1_PERIPH_DAC12);
     LL_DAC_InitTypeDef dac_init_struct = {
-        .TriggerSource = LL_DAC_TRIGGER_TIM8_TRGO,
+        .TriggerSource = LL_DAC_TRIG_EXT_TIM8_TRGO,
         .OutputMode = LL_DAC_OUTPUT_MODE_NORMAL,
         .OutputBuffer = LL_DAC_OUTPUT_BUFFER_ENABLE,
         .OutputConnection = LL_DAC_OUTPUT_CONNECT_GPIO,
-        .WaveAutoGeneration = LL_DAC_WAVEGENERATION_NONE
+        .WaveAutoGeneration = LL_DAC_WAVE_AUTO_GENERATION_NONE
     };
 
     LL_DAC_Init(DAC1, LL_DAC_CHANNEL_1, &dac_init_struct);
@@ -166,14 +162,14 @@ void block_transfer_init(oscillator_t *oscillator)
 // output to dac at timer rate
 void block_transfer_start(void)
 {
-    // enable timer
-    LL_TIM_EnableCounter(TIM8);
     // enable dac
     LL_DAC_Enable(DAC1, LL_DAC_CHANNEL_1);
     // enable dma and irq
-    LL_DMA_EnableStream(DMA1, LL_DMA_STREAM_0);
     NVIC_SetPriority(DMA1_Stream0_IRQn, 4);
     NVIC_EnableIRQ(DMA1_Stream0_IRQn);
+    LL_DMA_EnableStream(DMA1, LL_DMA_STREAM_0);
+    // enable timer
+    LL_TIM_EnableCounter(TIM8);
 }
 
 // stop transfer of data
@@ -197,7 +193,7 @@ void led_blink(void *params [[maybe_unused]])
     while (1)
     {
         LL_GPIO_TogglePin(GPIOE, LL_GPIO_PIN_3);
-        xTaskDelayUntil(&prev_wake_time, pdMS_TO_TICKS(500));
+        xTaskDelayUntil(&prev_wake_time, pdMS_TO_TICKS(1000));
     }
 }
 

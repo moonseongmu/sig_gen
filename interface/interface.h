@@ -44,12 +44,14 @@ typedef struct oscillator_t
 
     dds_t dds;
 
-    active_buffer_t active_buffer;
+    // active buffer is buffer currently being filled by dds,
+    // not the buffer being output by dac
+    volatile active_buffer_t active_buffer;
 
     float out_freq;
     float clock_freq;
 
-    bool buffers_swapped;
+    volatile bool buffers_swapped;
 } oscillator_t;
 
 //------------ port to implement ------------//
