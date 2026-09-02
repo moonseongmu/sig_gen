@@ -49,6 +49,31 @@
 
 void SystemClock_Config(void);
 
+void init_cyccnt(void)
+{
+    SET_BIT(DCB->DEMCR, DCB_DEMCR_TRCENA_Msk);
+}
+
+void clear_cyccnt(void)
+{
+    CLEAR_REG(DWT->CYCCNT);
+}
+
+void start_cyccnt(void)
+{
+    SET_BIT(DWT->CTRL, DWT_CTRL_CYCCNTENA_Msk);
+}
+
+void stop_cyccnt(void)
+{
+    CLEAR_BIT(DWT->CTRL, DWT_CTRL_CYCCNTENA_Msk);
+}
+
+uint32_t get_cyccnt(void)
+{
+    return READ_REG(DWT->CYCCNT);
+}
+
 void system_init(void)
 {
     LL_APB4_GRP1_EnableClock(LL_APB4_GRP1_PERIPH_SYSCFG);
@@ -77,6 +102,8 @@ void system_init(void)
     GPIO_InitStruct.OutputType = LL_GPIO_OUTPUT_PUSHPULL;
     GPIO_InitStruct.Pull = LL_GPIO_PULL_NO;
     LL_GPIO_Init(GPIOE, &GPIO_InitStruct);
+
+    init_cyccnt();
 
     __enable_irq();
 }

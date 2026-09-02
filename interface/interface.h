@@ -56,6 +56,16 @@ typedef struct oscillator_t
 
 //------------ port to implement ------------//
 
+// debugging facilities
+void clear_cyccnt(void);
+
+void start_cyccnt(void);
+
+void stop_cyccnt(void);
+
+uint32_t get_cyccnt(void);
+// debugging facilities
+
 void system_init(void);
 
 // led blnk task
