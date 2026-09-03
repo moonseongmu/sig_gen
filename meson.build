@@ -3,7 +3,14 @@ project('sig_gen', 'c', meson_version: '>=1.1', default_options: ['c_std=c23'])
 src = []
 inc = []
 
-c_args = ['-Wall', '-Wextra']
+c_args = [
+    '-Wall',
+    '-Wextra',
+    '-Wshadow',
+    '-Wdouble-promotion',
+    '-Wundef',
+    '-fno-common',
+]
 
 map_file_arg = '-Wl,-Map=' + meson.project_name() + '.map'
 c_link_args = [map_file_arg, '-nostartfiles']

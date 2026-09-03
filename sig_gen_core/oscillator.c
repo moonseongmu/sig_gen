@@ -29,7 +29,7 @@
 //clang-format on
 
 [[gnu::section(".oscillator_struct")]]
-oscillator_t oscillator = {
+oscillator_t oscillator_struct = {
     .buffer_1 = {},
     .buffer_2 = {},
     .dds = { .phase_accumulator = 0, .tuning_word = 0, .value = 0 },
@@ -86,16 +86,16 @@ void fill_buffer(oscillator_t *oscillator)
 void block_transfer_complete_ISR(void)
 {
     // swap buffers & set buffers swapped var
-    switch (oscillator.active_buffer)
+    switch (oscillator_struct.active_buffer)
     {
         case buffer_1:
-            oscillator.active_buffer = buffer_2;
+            oscillator_struct.active_buffer = buffer_2;
             break;
         case buffer_2:
-            oscillator.active_buffer = buffer_1;
+            oscillator_struct.active_buffer = buffer_1;
             break;
     }
-    oscillator.buffers_swapped = true;
+    oscillator_struct.buffers_swapped = true;
 
     // give notification to oscillator task
     BaseType_t higher_priority_task_woken = pdFALSE;
