@@ -44,8 +44,7 @@ typedef struct oscillator_t
 
     dds_t dds;
 
-    // active buffer is buffer currently being filled by dds,
-    // not the buffer being output by dac
+    // active buffer is buffer currently being output by dds
     volatile active_buffer_t active_buffer;
 
     float out_freq;

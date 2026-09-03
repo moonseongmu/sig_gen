@@ -36,7 +36,7 @@ oscillator_t oscillator = {
     .out_freq = 0,
     .clock_freq = 0,
     .buffers_swapped = false,
-    .active_buffer = buffer_2
+    .active_buffer = buffer_1
 };
 
 TaskHandle_t oscillator_task_handle = NULL;
@@ -74,10 +74,10 @@ void fill_buffer(oscillator_t *oscillator)
         switch (oscillator->active_buffer)
         {
             case buffer_1:
-                oscillator->buffer_1[i] = oscillator->dds.value;
+                oscillator->buffer_2[i] = oscillator->dds.value;
                 break;
             case buffer_2:
-                oscillator->buffer_2[i] = oscillator->dds.value;
+                oscillator->buffer_1[i] = oscillator->dds.value;
                 break;
         }
     }
