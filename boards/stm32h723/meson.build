@@ -55,7 +55,7 @@ src+=files(
 'Drivers\STM32H7xx_HAL_Driver\Src\stm32h7xx_ll_usart.c',
 'Drivers\STM32H7xx_HAL_Driver\Src\stm32h7xx_ll_utils.c')
 
-st_inc=include_directories('Inc',
+st_inc=include_directories('Src',
 'Drivers/CMSIS/Device/ST/STM32H7xx/Include',
 'Drivers/STM32H7xx_HAL_Driver/Inc')
 
