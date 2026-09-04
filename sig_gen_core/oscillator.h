@@ -32,4 +32,4 @@ extern TaskHandle_t oscillator_task_handle;
 void fill_buffer(oscillator_t *oscillator);
 void oscillator_task(void *params);
 
-extern oscillator_t oscillator;
+extern oscillator_t oscillator_struct;
