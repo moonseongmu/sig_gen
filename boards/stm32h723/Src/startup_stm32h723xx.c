@@ -28,7 +28,7 @@ extern uint32_t _ebss;
   Internal References
  *---------------------------------------------------------------------------*/
 __NO_RETURN void Reset_Handler(void);
-__NO_RETURN void Default_Handler(void);
+void Default_Handler(void);
 __NO_RETURN void _start(void);
 
 /* ToDo: Add Cortex exception handler according the used Cortex-Core */

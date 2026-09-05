@@ -23,8 +23,7 @@
  *
  */
 
-#include "bsp/board_api.h"
-#include "tusb.h"
+#include "tusb.h" // IWYU pragma: keep
 
 // Unique PID per example: guarantees re-enumeration on re-flash and a fresh
 // host driver match.
@@ -128,7 +127,7 @@ static char const *string_desc_arr[] = {
                     0x04 }, // 0: is supported language is English (0x0409)
     "cowsarefalling",       // 1: Manufacturer
     "Signal Generator",     // 2: Product
-    NULL,                   // 3: Serials will use unique ID if possible
+    "0000",                 // 3: Serials will use unique ID if possible
     "TinyUSB CDC",          // 4: CDC Interface
 };
 
@@ -147,10 +146,6 @@ uint16_t const *tud_descriptor_string_cb(uint8_t index, uint16_t langid)
         case STRID_LANGID:
             memcpy(&_desc_str[1], string_desc_arr[0], 2);
             chr_count = 1;
-            break;
-
-        case STRID_SERIAL:
-            chr_count = board_usb_get_serial(_desc_str + 1, 32);
             break;
 
         default:

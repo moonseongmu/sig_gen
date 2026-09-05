@@ -8,7 +8,6 @@ c_args = [
     '-Wextra',
     '-Wshadow',
     '-Wdouble-promotion',
-    '-Wundef',
     '-fno-common',
 ]
 
