@@ -257,6 +257,21 @@ void SystemClock_Config(void)
     {
     }
 
+    LL_RCC_PLL3Q_Enable();
+    LL_RCC_PLL3_SetVCOInputRange(LL_RCC_PLLINPUTRANGE_1_2);
+    LL_RCC_PLL3_SetVCOOutputRange(LL_RCC_PLLVCORANGE_MEDIUM);
+    LL_RCC_PLL3_SetM(25);
+    LL_RCC_PLL3_SetN(192);
+    LL_RCC_PLL3_SetP(2);
+    LL_RCC_PLL3_SetQ(4);
+    LL_RCC_PLL3_SetR(2);
+    LL_RCC_PLL3_Enable();
+
+    /* Wait till PLL is ready */
+    while(LL_RCC_PLL3_IsReady() != 1)
+    {
+    }
+
     /* Intermediate AHB prescaler 2 when target frequency clock is higher than
      * 80 MHz */
     LL_RCC_SetAHBPrescaler(LL_RCC_AHB_DIV_2);
