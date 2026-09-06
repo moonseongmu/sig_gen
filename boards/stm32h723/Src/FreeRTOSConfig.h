@@ -324,6 +324,8 @@
 
 // https://forums.freertos.org/t/interrupt-priorities/9206
 
+#define configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY 4
+
 /* configKERNEL_INTERRUPT_PRIORITY sets the priority of the tick and context
  * switch performing interrupts.  Not supported by all FreeRTOS ports.  See
  * https://www.freertos.org/RTOS-Cortex-M3-M4.html for information specific to
@@ -337,11 +339,11 @@
  * See https://www.freertos.org/RTOS-Cortex-M3-M4.html for information specific
  * to ARM Cortex-M devices. */
 #define configMAX_SYSCALL_INTERRUPT_PRIORITY \
-    4 << (8 - 4) // max interrupt priority = 4
+    configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY << (8 - 4) 
 
 /* Another name for configMAX_SYSCALL_INTERRUPT_PRIORITY - the name used
  * depends on the FreeRTOS port. */
-#define configMAX_API_CALL_INTERRUPT_PRIORITY 4 << (8 - 4)
+#define configMAX_API_CALL_INTERRUPT_PRIORITY configMAX_SYSCALL_INTERRUPT_PRIORITY
 
 /******************************************************************************/
 /* Hook and callback function related definitions.

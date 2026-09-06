@@ -28,6 +28,11 @@ src += files(
     'src/tusb.c',
     'src/typec/usbc.c',
 )
+
+src += files(
+    'src/portable/synopsys/dwc2/dcd_dwc2.c',
+    'src/portable/synopsys/dwc2/dwc2_common.c',
+)
 tusb_inc = include_directories('src')
 
 inc += [tusb_inc]

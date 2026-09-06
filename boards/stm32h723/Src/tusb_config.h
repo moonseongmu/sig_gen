@@ -45,15 +45,20 @@ extern "C"
     // COMMON CONFIGURATION
     //--------------------------------------------------------------------
 
-#define CFC_TUSB_MCU OPT_MCU_STM32H7
+#ifndef CFG_TUSB_MCU
+    #define CFG_TUSB_MCU                OPT_MCU_STM32H7
+#endif
 #define CFG_TUSB_RHPORT0_MODE (OPT_MODE_DEVICE | OPT_MODE_FULL_SPEED)
 #define TUP_USBIP_DWC2
 #define TUP_USBIP_DWC2_STM32
-#define TUP_DCD_ENDPOINT_MAX 9
 
-#define CFG_TUSB_OS OPT_OS_FREERTOS
+#ifndef CFG_TUSB_OS
+    #define CFG_TUSB_OS OPT_OS_FREERTOS
+#endif
 
-#define CFG_TUSB_DEBUG 0
+#ifndef CFG_TUSB_DEBUG
+    #define CFG_TUSB_DEBUG        0
+#endif
 
 // Enable Device stack
 #define CFG_TUD_ENABLED 1
@@ -67,15 +72,20 @@ extern "C"
  * - CFG_TUSB_MEM SECTION : __attribute__ (( section(".usb_ram") ))
  * - CFG_TUSB_MEM_ALIGN   : __attribute__ ((aligned(4)))
  */
-#define CFG_TUSB_MEM_SECTION __attribute__((section(".usb_ram")))
+#ifndef CFG_TUSB_MEM_SECTION
+#define CFG_TUSB_MEM_SECTION        __attribute__((section(".usb_ram")))
+#endif
 
-#define CFG_TUSB_MEM_ALIGN __attribute__((aligned(4)))
-
+#ifndef CFG_TUSB_MEM_ALIGN
+#define CFG_TUSB_MEM_ALIGN          __attribute__ ((aligned(4)))
+#endif
     //--------------------------------------------------------------------
     // DEVICE CONFIGURATION
     //--------------------------------------------------------------------
 
-#define CFG_TUD_ENDPOINT0_SIZE 64
+#ifndef CFG_TUD_ENDPOINT0_SIZE
+#define CFG_TUD_ENDPOINT0_SIZE    64
+#endif
 
 //------------- CLASS -------------//
 #define CFG_TUD_CDC 1

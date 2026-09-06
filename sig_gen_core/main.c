@@ -40,7 +40,20 @@ int main(void)
                 "oscillator_task",
                 configMINIMAL_STACK_SIZE,
                 (void *)&oscillator_struct,
-                5,
+                configMAX_PRIORITIES - 1,
+                &oscillator_task_handle);
+
+    xTaskCreate(usb_device_task,
+                "usb_device_task",
+                configMINIMAL_STACK_SIZE * 2,
+                NULL,
+                configMAX_PRIORITIES - 2,
+                &oscillator_task_handle);
+    xTaskCreate(usb_cdc_task,
+                "usb_cdc_task",
+                configMINIMAL_STACK_SIZE * 2,
+                NULL,
+                configMAX_PRIORITIES - 3,
                 &oscillator_task_handle);
     vTaskStartScheduler();
     while (1)

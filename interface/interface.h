@@ -68,7 +68,7 @@ uint32_t get_cyccnt(void);
 void system_init(void);
 
 // led blnk task
-void led_blink(void *pvParameters);
+void led_blink(void *params);
 
 // setup interrupt/trigger rate timer, setup dma(if available)
 void block_transfer_init(oscillator_t *oscillator);
@@ -78,6 +78,13 @@ void block_transfer_start(void);
 
 // stop transfer of data
 void block_transfer_end(void);
+
+//initialise usb peripheral
+void usb_init(void);
+
+
+void usb_device_task(void *params);
+void usb_cdc_task(void *params [[maybe_unused]]);
 
 //------------ implemented in app code ------------//
 

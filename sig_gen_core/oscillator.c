@@ -41,6 +41,7 @@ oscillator_t oscillator_struct = {
 
 TaskHandle_t oscillator_task_handle = NULL;
 
+// fills ifle buffers while dac outputs
 void oscillator_task(void *params)
 {
     oscillator_t *oscillator = (oscillator_t *)params;
