@@ -2684,10 +2684,6 @@ typedef struct
 
 
 #define USB1_OTG_HS             ((USB_OTG_GlobalTypeDef *) USB1_OTG_HS_PERIPH_BASE)
-#define USB1_OTG_HS_DEVICE      ((USB_OTG_DeviceTypeDef *) USB1_OTG_HS_PERIPH_BASE + USB_OTG_DEVICE_BASE)
-#define USB1_OTG_HS_PCGCCTL     *(__IO uint32_t *)(USB1_OTG_HS_PERIPH_BASE + USB_OTG_PCGCCTL_BASE)
-#define USB1_OTG_HS_INEP(i)     ((USB_OTG_INEndpointTypeDef *)(USB1_OTG_HS_PERIPH_BASE + USB_OTG_IN_ENDPOINT_BASE + ((i) * USB_OTG_EP_REG_SIZE)))
-#define USB1_OTG_HS_OUTEP(i)    ((USB_OTG_OUTEndpointTypeDef *)(USB1_OTG_HS_PERIPH_BASE + USB_OTG_OUT_ENDPOINT_BASE + ((i) * USB_OTG_EP_REG_SIZE)))
 
 /* Legacy defines */
 #define USB_OTG_HS                   USB1_OTG_HS

@@ -48,6 +48,19 @@
 #define NVIC_PRIORITYGROUP_4 ((uint32_t)0x00000003)
 #endif
 
+#define USB_DEVICE \
+    ((USB_OTG_DeviceTypeDef *)(USB1_OTG_HS_PERIPH_BASE + USB_OTG_DEVICE_BASE))
+#define USB_PCGCCTL \
+    *(__IO uint32_t *)(USB1_OTG_HS_PERIPH_BASE + USB_OTG_PCGCCTL_BASE)
+#define USB_INEP(i)                                           \
+    ((USB_OTG_INEndpointTypeDef *)(USB1_OTG_HS_PERIPH_BASE    \
+                                   + USB_OTG_IN_ENDPOINT_BASE \
+                                   + ((i) * USB_OTG_EP_REG_SIZE)))
+#define USB_OUTEP(i)                                            \
+    ((USB_OTG_OUTEndpointTypeDef *)(USB1_OTG_HS_PERIPH_BASE     \
+                                    + USB_OTG_OUT_ENDPOINT_BASE \
+                                    + ((i) * USB_OTG_EP_REG_SIZE)))
+
 void SystemClock_Config(void);
 
 void init_cyccnt(void)
@@ -274,7 +287,7 @@ void usb_init(void)
     }
 
     // soft disconnect
-    SET_BIT(USB1_OTG_HS_DEVICE->DCTL, USB_OTG_DCTL_SDIS);
+    SET_BIT(USB_DEVICE->DCTL, USB_OTG_DCTL_SDIS);
 
     // Deactivate VBUS Sensing B
     CLEAR_BIT(USB1_OTG_HS->GCCFG, USB_OTG_GCCFG_VBDEN);
@@ -284,10 +297,10 @@ void usb_init(void)
     SET_BIT(USB1_OTG_HS->GOTGCTL, USB_OTG_GOTGCTL_BVALOVAL);
 
     // restart phy clock
-    CLEAR_REG(USB1_OTG_HS_PCGCCTL);
+    CLEAR_REG(USB_PCGCCTL);
 
     // set device speed to full speed using internal phy
-    MODIFY_REG(USB1_OTG_HS_DEVICE->DCFG,
+    MODIFY_REG(USB_DEVICE->DCFG,
                USB_OTG_DCFG_DSPD,
                3 << USB_OTG_DCFG_DSPD_Pos);
 
@@ -327,59 +340,59 @@ void usb_init(void)
     }
 
     // clear all pending Device Interrupts
-    CLEAR_REG(USB1_OTG_HS_DEVICE->DIEPMSK);
-    CLEAR_REG(USB1_OTG_HS_DEVICE->DOEPMSK);
-    CLEAR_REG(USB1_OTG_HS_DEVICE->DAINTMSK);
+    CLEAR_REG(USB_DEVICE->DIEPMSK);
+    CLEAR_REG(USB_DEVICE->DOEPMSK);
+    CLEAR_REG(USB_DEVICE->DAINTMSK);
 
     for (int i = 0; i < 9; i++)
     {
-        if (READ_BIT(USB1_OTG_HS_INEP(i)->DIEPCTL, USB_OTG_DIEPCTL_EPENA)
+        if (READ_BIT(USB_INEP(i)->DIEPCTL, USB_OTG_DIEPCTL_EPENA)
             == USB_OTG_DIEPCTL_EPENA)
         {
             if (i == 0)
             {
-                USB1_OTG_HS_INEP(i)->DIEPCTL = USB_OTG_DIEPCTL_SNAK;
+                USB_INEP(i)->DIEPCTL = USB_OTG_DIEPCTL_SNAK;
             }
             else
             {
-                USB1_OTG_HS_INEP(i)->DIEPCTL = USB_OTG_DIEPCTL_EPDIS
-                                               | USB_OTG_DIEPCTL_SNAK;
+                USB_INEP(i)->DIEPCTL = USB_OTG_DIEPCTL_EPDIS
+                                       | USB_OTG_DIEPCTL_SNAK;
             }
         }
         else
         {
-            CLEAR_REG(USB1_OTG_HS_INEP(i)->DIEPCTL);
+            CLEAR_REG(USB_INEP(i)->DIEPCTL);
         }
 
-        CLEAR_REG(USB1_OTG_HS_INEP(i)->DIEPTSIZ);
-        USB1_OTG_HS_INEP(i)->DIEPINT = 0xFB7FU;
+        CLEAR_REG(USB_INEP(i)->DIEPTSIZ);
+        USB_INEP(i)->DIEPINT = 0xFB7FU;
     }
 
     for (int i = 0; i < 9; i++)
     {
-        if ((USB1_OTG_HS_OUTEP(i)->DOEPCTL & USB_OTG_DOEPCTL_EPENA)
+        if ((USB_OUTEP(i)->DOEPCTL & USB_OTG_DOEPCTL_EPENA)
             == USB_OTG_DOEPCTL_EPENA)
         {
             if (i == 0)
             {
-                USB1_OTG_HS_OUTEP(i)->DOEPCTL = USB_OTG_DOEPCTL_SNAK;
+                USB_OUTEP(i)->DOEPCTL = USB_OTG_DOEPCTL_SNAK;
             }
             else
             {
-                USB1_OTG_HS_OUTEP(i)->DOEPCTL = USB_OTG_DOEPCTL_EPDIS
-                                                | USB_OTG_DOEPCTL_SNAK;
+                USB_OUTEP(i)->DOEPCTL = USB_OTG_DOEPCTL_EPDIS
+                                        | USB_OTG_DOEPCTL_SNAK;
             }
         }
         else
         {
-            USB1_OTG_HS_OUTEP(i)->DOEPCTL = 0U;
+            USB_OUTEP(i)->DOEPCTL = 0U;
         }
 
-        USB1_OTG_HS_OUTEP(i)->DOEPTSIZ = 0U;
-        USB1_OTG_HS_OUTEP(i)->DOEPINT = 0xFB7FU;
+        USB_OUTEP(i)->DOEPTSIZ = 0U;
+        USB_OUTEP(i)->DOEPINT = 0xFB7FU;
     }
 
-    CLEAR_BIT(USB1_OTG_HS_DEVICE->DIEPMSK, USB_OTG_DIEPMSK_TXFURM);
+    CLEAR_BIT(USB_DEVICE->DIEPMSK, USB_OTG_DIEPMSK_TXFURM);
 
     /* Disable all interrupts. */
     CLEAR_REG(USB1_OTG_HS->GINTMSK);
@@ -394,10 +407,10 @@ void usb_init(void)
              | USB_OTG_GINTMSK_OEPINT | USB_OTG_GINTMSK_IISOIXFRM
              | USB_OTG_GINTMSK_PXFRM_IISOOXFRM | USB_OTG_GINTMSK_WUIM));
 
-    CLEAR_BIT(USB1_OTG_HS_PCGCCTL,
+    CLEAR_BIT(USB_PCGCCTL,
               (USB_OTG_PCGCCTL_STOPCLK | USB_OTG_PCGCCTL_GATECLK));
 
-    SET_BIT(USB1_OTG_HS_DEVICE->DCTL, USB_OTG_DCTL_SDIS);
+    SET_BIT(USB_DEVICE->DCTL, USB_OTG_DCTL_SDIS);
 }
 
 void OTG_HS_IRQHandler(void)
