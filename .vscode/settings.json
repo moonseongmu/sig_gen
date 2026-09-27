@@ -3,7 +3,5 @@
         "--header-insertion=never"
     ],
     "mesonbuild.configureOnOpen": false,
-    
     "editor.formatOnSave": true
-
 }

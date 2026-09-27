@@ -2683,7 +2683,7 @@ typedef struct
 #define MDMA_Channel15      ((MDMA_Channel_TypeDef *)MDMA_Channel15_BASE)
 
 
-#define USB1_OTG_HS         ((USB_OTG_GlobalTypeDef *) USB1_OTG_HS_PERIPH_BASE)
+#define USB1_OTG_HS             ((USB_OTG_GlobalTypeDef *) USB1_OTG_HS_PERIPH_BASE)
 
 /* Legacy defines */
 #define USB_OTG_HS                   USB1_OTG_HS

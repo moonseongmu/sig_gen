@@ -246,6 +246,7 @@ SECTIONS
   {
     . = ALIGN(4);
     *(.oscillator_struct);
+    *(.usb_ram);
     . = ALIGN(4);
   } >RAM_D1
 

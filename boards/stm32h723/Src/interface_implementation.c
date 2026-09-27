@@ -17,6 +17,7 @@
  *SPDX-License-Identifier: GPL-3.0-or-later
  */
 
+#include "interface_implementation.h"
 #include "interface.h"
 #include "stm32h7xx.h" // IWYU pragma: keep
 #include "stm32h7xx_ll_dac.h"
@@ -27,6 +28,7 @@
 #include "stm32h7xx_ll_rcc.h"
 #include "stm32h7xx_ll_tim.h"
 #include "stm32h7xx_ll_utils.h"
+#include "tusb.h"
 
 // FreeRTOS.h needs to be called first
 //clang-format off
@@ -34,21 +36,7 @@
 #include "task.h"
 //clang-format on
 
-#ifndef NVIC_PRIORITYGROUP_0
-/*!< 0 bit  for pre-emption priority, 4 bits for subpriority */
-#define NVIC_PRIORITYGROUP_0 ((uint32_t)0x00000007)
-/*!< 1 bit  for pre-emption priority, 3 bits for subpriority */
-#define NVIC_PRIORITYGROUP_1 ((uint32_t)0x00000006)
-/*!< 2 bits for pre-emption priority, 2 bits for subpriority */
-#define NVIC_PRIORITYGROUP_2 ((uint32_t)0x00000005)
-/*!< 3 bits for pre-emption priority, 1 bit  for subpriority */
-#define NVIC_PRIORITYGROUP_3 ((uint32_t)0x00000004)
-/*!< 4 bits for pre-emption priority, 0 bit  for subpriority */
-#define NVIC_PRIORITYGROUP_4 ((uint32_t)0x00000003)
-#endif
-
-void SystemClock_Config(void);
-
+// cycle counting utils
 void init_cyccnt(void)
 {
     SET_BIT(DCB->DEMCR, DCB_DEMCR_TRCENA_Msk);
@@ -85,23 +73,9 @@ void system_init(void)
     NVIC_SetPriority(SysTick_IRQn,
                      NVIC_EncodePriority(NVIC_GetPriorityGrouping(), 15, 0));
 
+    HAL_Init();
     /* Configure the system clock */
     SystemClock_Config();
-
-    /*Init GPIO*/
-    LL_GPIO_InitTypeDef GPIO_InitStruct = { 0 };
-
-    /* GPIO Ports Clock Enable */
-    LL_AHB4_GRP1_EnableClock(LL_AHB4_GRP1_PERIPH_GPIOE);
-
-    LL_GPIO_ResetOutputPin(GPIOE, LL_GPIO_PIN_3);
-
-    GPIO_InitStruct.Pin = LL_GPIO_PIN_3;
-    GPIO_InitStruct.Mode = LL_GPIO_MODE_OUTPUT;
-    GPIO_InitStruct.Speed = LL_GPIO_SPEED_FREQ_LOW;
-    GPIO_InitStruct.OutputType = LL_GPIO_OUTPUT_PUSHPULL;
-    GPIO_InitStruct.Pull = LL_GPIO_PULL_NO;
-    LL_GPIO_Init(GPIOE, &GPIO_InitStruct);
 
     init_cyccnt();
 
@@ -192,7 +166,8 @@ void block_transfer_start(void)
     // enable dac
     LL_DAC_Enable(DAC1, LL_DAC_CHANNEL_1);
     // enable dma and irq
-    NVIC_SetPriority(DMA1_Stream0_IRQn, 4);
+    NVIC_SetPriority(DMA1_Stream0_IRQn,
+                     configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY + 1);
     NVIC_EnableIRQ(DMA1_Stream0_IRQn);
     LL_DMA_EnableStream(DMA1, LL_DMA_STREAM_0);
     // enable timer
@@ -214,8 +189,23 @@ void DMA1_Stream0_IRQHandler(void)
     block_transfer_complete_ISR();
 }
 
+// blinks led at 2Hz
 void led_blink(void *params [[maybe_unused]])
 {
+    /*Init GPIO*/
+    LL_GPIO_InitTypeDef GPIO_InitStruct = { 0 };
+    /* GPIO Ports Clock Enable */
+    LL_AHB4_GRP1_EnableClock(LL_AHB4_GRP1_PERIPH_GPIOE);
+
+    LL_GPIO_ResetOutputPin(GPIOE, LL_GPIO_PIN_3);
+
+    GPIO_InitStruct.Pin = LL_GPIO_PIN_3;
+    GPIO_InitStruct.Mode = LL_GPIO_MODE_OUTPUT;
+    GPIO_InitStruct.Speed = LL_GPIO_SPEED_FREQ_LOW;
+    GPIO_InitStruct.OutputType = LL_GPIO_OUTPUT_PUSHPULL;
+    GPIO_InitStruct.Pull = LL_GPIO_PULL_NO;
+    LL_GPIO_Init(GPIOE, &GPIO_InitStruct);
+
     TickType_t prev_wake_time = xTaskGetTickCount();
     while (1)
     {
@@ -243,6 +233,7 @@ void SystemClock_Config(void)
     }
     LL_RCC_PLL_SetSource(LL_RCC_PLLSOURCE_HSE);
     LL_RCC_PLL1P_Enable();
+    LL_RCC_PLL1R_Enable();
     LL_RCC_PLL1_SetVCOInputRange(LL_RCC_PLLINPUTRANGE_8_16);
     LL_RCC_PLL1_SetVCOOutputRange(LL_RCC_PLLVCORANGE_WIDE);
     LL_RCC_PLL1_SetM(2);
@@ -257,8 +248,23 @@ void SystemClock_Config(void)
     {
     }
 
-    /* Intermediate AHB prescaler 2 when target frequency clock is higher than
-     * 80 MHz */
+    LL_RCC_PLL3Q_Enable();
+    LL_RCC_PLL3_SetVCOInputRange(LL_RCC_PLLINPUTRANGE_1_2);
+    LL_RCC_PLL3_SetVCOOutputRange(LL_RCC_PLLVCORANGE_MEDIUM);
+    LL_RCC_PLL3_SetM(25);
+    LL_RCC_PLL3_SetN(192);
+    LL_RCC_PLL3_SetP(2);
+    LL_RCC_PLL3_SetQ(4);
+    LL_RCC_PLL3_SetR(2);
+    LL_RCC_PLL3_Enable();
+
+    /* Wait till PLL is ready */
+    while (LL_RCC_PLL3_IsReady() != 1)
+    {
+    }
+
+    /* Intermediate AHB prescaler 2 when target frequency clock is higher
+     * than 80 MHz */
     LL_RCC_SetAHBPrescaler(LL_RCC_AHB_DIV_2);
 
     LL_RCC_SetSysClkSource(LL_RCC_SYS_CLKSOURCE_PLL1);
@@ -277,4 +283,156 @@ void SystemClock_Config(void)
     LL_Init1msTick(550000000);
 
     LL_SetSystemCoreClock(550000000);
+
+    /* Update the time base */
+    if (HAL_InitTick(TICK_INT_PRIORITY) != HAL_OK)
+    {
+        Error_Handler();
+    }
+}
+
+void Error_Handler(void)
+{
+    __disable_irq();
+    while (1)
+    {
+    }
+}
+
+// HAL timebase functions
+
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
+{
+    if (htim->Instance == TIM7)
+    {
+        HAL_IncTick();
+    }
+}
+
+extern TIM_HandleTypeDef htim7;
+void TIM7_IRQHandler(void)
+{
+    /* USER CODE BEGIN TIM7_IRQn 0 */
+
+    /* USER CODE END TIM7_IRQn 0 */
+    HAL_TIM_IRQHandler(&htim7);
+    /* USER CODE BEGIN TIM7_IRQn 1 */
+
+    /* USER CODE END TIM7_IRQn 1 */
+}
+
+void HAL_MspInit(void)
+{
+    __HAL_RCC_SYSCFG_CLK_ENABLE();
+}
+
+// USB Functions
+
+PCD_HandleTypeDef hpcd_USB_OTG_HS;
+
+/* USB_OTG_HS init function */
+
+void OTG_HS_IRQHandler(void)
+{
+    tusb_int_handler(0, true);
+}
+
+// tinyusb device driver task
+void usb_device_task(void *params [[maybe_unused]])
+{
+    USB_OTG_HS_PCD_Init();
+    tusb_rhport_init_t port_init = { .role = TUSB_ROLE_DEVICE,
+                                     .speed = TUSB_SPEED_FULL };
+
+    tusb_init(0, &port_init);
+
+    while (1)
+    {
+        tud_task();
+    }
+}
+
+TaskHandle_t cdc_task_handle = NULL;
+
+void tud_cdc_rx_cb(uint8_t itf [[maybe_unused]])
+{
+    if (cdc_task_handle != NULL)
+    {
+        BaseType_t higher_priority_task_woken = pdFALSE;
+        // Notify the cdc processing task that data has arrived
+        vTaskNotifyGiveFromISR(cdc_task_handle, &higher_priority_task_woken);
+        portYIELD_FROM_ISR(higher_priority_task_woken);
+    }
+}
+
+void usb_cdc_task(void *params [[maybe_unused]])
+{
+    while (1)
+    {
+        // Wait indefinitely until tud_cdc_rx_cb gives a notification
+        ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+
+        // There are data available
+        while (tud_cdc_available())
+        {
+            uint8_t buf[64];
+
+            // read and echo back
+            uint32_t count = tud_cdc_read(buf, sizeof(buf));
+
+            // Echo back
+            tud_cdc_write(buf, count);
+        }
+
+        tud_cdc_write_flush();
+    }
+}
+
+void USB_OTG_HS_PCD_Init(void)
+{
+    hpcd_USB_OTG_HS.Instance = USB_OTG_HS;
+    hpcd_USB_OTG_HS.Init.dev_endpoints = 9;
+    hpcd_USB_OTG_HS.Init.speed = PCD_SPEED_FULL;
+    hpcd_USB_OTG_HS.Init.dma_enable = DISABLE;
+    hpcd_USB_OTG_HS.Init.phy_itface = USB_OTG_EMBEDDED_PHY;
+    hpcd_USB_OTG_HS.Init.Sof_enable = DISABLE;
+    hpcd_USB_OTG_HS.Init.low_power_enable = DISABLE;
+    hpcd_USB_OTG_HS.Init.lpm_enable = DISABLE;
+    hpcd_USB_OTG_HS.Init.vbus_sensing_enable = DISABLE;
+    hpcd_USB_OTG_HS.Init.use_dedicated_ep1 = DISABLE;
+    hpcd_USB_OTG_HS.Init.use_external_vbus = DISABLE;
+    if (HAL_PCD_Init(&hpcd_USB_OTG_HS) != HAL_OK)
+    {
+        Error_Handler();
+    }
+}
+
+void HAL_PCD_MspInit(PCD_HandleTypeDef *pcdHandle)
+{
+    if (pcdHandle->Instance == USB_OTG_HS)
+    {
+        LL_RCC_SetUSBClockSource(LL_RCC_USB_CLKSOURCE_PLL3Q);
+        LL_PWR_EnableUSBVoltageDetector();
+
+        /* USB_OTG_HS clock enable */
+        __HAL_RCC_USB_OTG_HS_CLK_ENABLE();
+
+        /* USB_OTG_HS interrupt Init */
+        HAL_NVIC_SetPriority(OTG_HS_IRQn,
+                             configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY,
+                             0);
+        HAL_NVIC_EnableIRQ(OTG_HS_IRQn);
+    }
+}
+
+void HAL_PCD_MspDeInit(PCD_HandleTypeDef *pcdHandle)
+{
+    if (pcdHandle->Instance == USB_OTG_HS)
+    {
+        /* Peripheral clock disable */
+        __HAL_RCC_USB_OTG_HS_CLK_DISABLE();
+
+        /* USB_OTG_HS interrupt Deinit */
+        HAL_NVIC_DisableIRQ(OTG_HS_IRQn);
+    }
 }
