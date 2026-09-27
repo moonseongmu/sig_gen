@@ -21,6 +21,12 @@
 
 #include <stdint.h>
 
+// FreeRTOS.h needs to be called first
+//clang-format off
+#include "FreeRTOS.h" // IWYU pragma: keep
+#include "task.h"
+//clang-format on
+
 // defines
 constexpr uint32_t BLOCK_SIZE = 512;
 
@@ -79,9 +85,10 @@ void block_transfer_start(void);
 // stop transfer of data
 void block_transfer_end(void);
 
-//initialise usb peripheral
+// initialise usb peripheral
 void usb_init(void);
 
+extern TaskHandle_t cdc_task_handle;
 
 void usb_device_task(void *params);
 void usb_cdc_task(void *params [[maybe_unused]]);

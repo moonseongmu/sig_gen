@@ -17,6 +17,7 @@
  *SPDX-License-Identifier: GPL-3.0-or-later
  */
 
+#include "interface_implementation.h"
 #include "interface.h"
 #include "stm32h7xx.h" // IWYU pragma: keep
 #include "stm32h7xx_ll_dac.h"
@@ -35,34 +36,7 @@
 #include "task.h"
 //clang-format on
 
-#ifndef NVIC_PRIORITYGROUP_0
-/*!< 0 bit  for pre-emption priority, 4 bits for subpriority */
-#define NVIC_PRIORITYGROUP_0 ((uint32_t)0x00000007)
-/*!< 1 bit  for pre-emption priority, 3 bits for subpriority */
-#define NVIC_PRIORITYGROUP_1 ((uint32_t)0x00000006)
-/*!< 2 bits for pre-emption priority, 2 bits for subpriority */
-#define NVIC_PRIORITYGROUP_2 ((uint32_t)0x00000005)
-/*!< 3 bits for pre-emption priority, 1 bit  for subpriority */
-#define NVIC_PRIORITYGROUP_3 ((uint32_t)0x00000004)
-/*!< 4 bits for pre-emption priority, 0 bit  for subpriority */
-#define NVIC_PRIORITYGROUP_4 ((uint32_t)0x00000003)
-#endif
-
-#define USB_DEVICE \
-    ((USB_OTG_DeviceTypeDef *)(USB1_OTG_HS_PERIPH_BASE + USB_OTG_DEVICE_BASE))
-#define USB_PCGCCTL \
-    *(__IO uint32_t *)(USB1_OTG_HS_PERIPH_BASE + USB_OTG_PCGCCTL_BASE)
-#define USB_INEP(i)                                           \
-    ((USB_OTG_INEndpointTypeDef *)(USB1_OTG_HS_PERIPH_BASE    \
-                                   + USB_OTG_IN_ENDPOINT_BASE \
-                                   + ((i) * USB_OTG_EP_REG_SIZE)))
-#define USB_OUTEP(i)                                            \
-    ((USB_OTG_OUTEndpointTypeDef *)(USB1_OTG_HS_PERIPH_BASE     \
-                                    + USB_OTG_OUT_ENDPOINT_BASE \
-                                    + ((i) * USB_OTG_EP_REG_SIZE)))
-
-void SystemClock_Config(void);
-
+// cycle counting utils
 void init_cyccnt(void)
 {
     SET_BIT(DCB->DEMCR, DCB_DEMCR_TRCENA_Msk);
@@ -99,23 +73,9 @@ void system_init(void)
     NVIC_SetPriority(SysTick_IRQn,
                      NVIC_EncodePriority(NVIC_GetPriorityGrouping(), 15, 0));
 
+    HAL_Init();
     /* Configure the system clock */
     SystemClock_Config();
-
-    /*Init GPIO*/
-    LL_GPIO_InitTypeDef GPIO_InitStruct = { 0 };
-
-    /* GPIO Ports Clock Enable */
-    LL_AHB4_GRP1_EnableClock(LL_AHB4_GRP1_PERIPH_GPIOE);
-
-    LL_GPIO_ResetOutputPin(GPIOE, LL_GPIO_PIN_3);
-
-    GPIO_InitStruct.Pin = LL_GPIO_PIN_3;
-    GPIO_InitStruct.Mode = LL_GPIO_MODE_OUTPUT;
-    GPIO_InitStruct.Speed = LL_GPIO_SPEED_FREQ_LOW;
-    GPIO_InitStruct.OutputType = LL_GPIO_OUTPUT_PUSHPULL;
-    GPIO_InitStruct.Pull = LL_GPIO_PULL_NO;
-    LL_GPIO_Init(GPIOE, &GPIO_InitStruct);
 
     init_cyccnt();
 
@@ -232,231 +192,25 @@ void DMA1_Stream0_IRQHandler(void)
 // blinks led at 2Hz
 void led_blink(void *params [[maybe_unused]])
 {
+    /*Init GPIO*/
+    LL_GPIO_InitTypeDef GPIO_InitStruct = { 0 };
+    /* GPIO Ports Clock Enable */
+    LL_AHB4_GRP1_EnableClock(LL_AHB4_GRP1_PERIPH_GPIOE);
+
+    LL_GPIO_ResetOutputPin(GPIOE, LL_GPIO_PIN_3);
+
+    GPIO_InitStruct.Pin = LL_GPIO_PIN_3;
+    GPIO_InitStruct.Mode = LL_GPIO_MODE_OUTPUT;
+    GPIO_InitStruct.Speed = LL_GPIO_SPEED_FREQ_LOW;
+    GPIO_InitStruct.OutputType = LL_GPIO_OUTPUT_PUSHPULL;
+    GPIO_InitStruct.Pull = LL_GPIO_PULL_NO;
+    LL_GPIO_Init(GPIOE, &GPIO_InitStruct);
+
     TickType_t prev_wake_time = xTaskGetTickCount();
     while (1)
     {
         LL_GPIO_TogglePin(GPIOE, LL_GPIO_PIN_3);
         xTaskDelayUntil(&prev_wake_time, pdMS_TO_TICKS(1000));
-    }
-}
-
-void usb_init(void)
-{
-    // select pll3q as usb clock
-    LL_RCC_SetUSBClockSource(LL_RCC_USB_CLKSOURCE_PLL3Q);
-
-    // enable usb voltage detector
-    LL_PWR_EnableUSBVoltageDetector();
-
-    // usb peripheral clock enable
-    LL_AHB1_GRP1_EnableClock(LL_AHB1_GRP1_PERIPH_USB1OTGHS);
-
-    // usb interrupts
-    NVIC_SetPriority(OTG_HS_IRQn,
-                     configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY);
-    NVIC_EnableIRQ(OTG_HS_IRQn);
-
-    // usb selection of embedded fs phy
-    SET_BIT(USB1_OTG_HS->GUSBCFG, USB_OTG_GUSBCFG_PHYSEL);
-
-    // wait for AHB master idle
-    while ((READ_BIT(USB1_OTG_HS->GRSTCTL, USB_OTG_GRSTCTL_AHBIDL)
-            >> USB_OTG_GRSTCTL_AHBIDL_Pos)
-           == 0)
-    {
-    }
-
-    // reset usb core
-    SET_BIT(USB1_OTG_HS->GRSTCTL, USB_OTG_GRSTCTL_CSRST);
-
-    // wait for reset bit to clear
-    while (READ_BIT(USB1_OTG_HS->GRSTCTL, USB_OTG_GRSTCTL_CSRST)
-           == USB_OTG_GRSTCTL_CSRST)
-    {
-    }
-
-    // force device mode
-    SET_BIT(USB1_OTG_HS->GUSBCFG, USB_OTG_GUSBCFG_FDMOD);
-
-    // wait 25ms as per reference manual
-    LL_mDelay(25);
-
-    for (int i = 0; i < 15; i++)
-    {
-        CLEAR_REG(USB1_OTG_HS->DIEPTXF[i]);
-    }
-
-    // soft disconnect
-    SET_BIT(USB_DEVICE->DCTL, USB_OTG_DCTL_SDIS);
-
-    // Deactivate VBUS Sensing B
-    CLEAR_BIT(USB1_OTG_HS->GCCFG, USB_OTG_GCCFG_VBDEN);
-
-    // B-peripheral session valid override enable
-    SET_BIT(USB1_OTG_HS->GOTGCTL, USB_OTG_GOTGCTL_BVALOEN);
-    SET_BIT(USB1_OTG_HS->GOTGCTL, USB_OTG_GOTGCTL_BVALOVAL);
-
-    // restart phy clock
-    CLEAR_REG(USB_PCGCCTL);
-
-    // set device speed to full speed using internal phy
-    MODIFY_REG(USB_DEVICE->DCFG,
-               USB_OTG_DCFG_DSPD,
-               3 << USB_OTG_DCFG_DSPD_Pos);
-
-    // wait for ahb bus idle
-    while ((READ_BIT(USB1_OTG_HS->GRSTCTL, USB_OTG_GRSTCTL_AHBIDL)
-            >> USB_OTG_GRSTCTL_AHBIDL_Pos)
-           == 0)
-    {
-    }
-
-    // flush all tx fifo
-    MODIFY_REG(USB1_OTG_HS->GRSTCTL,
-               USB_OTG_GRSTCTL_TXFNUM,
-               0b10000 << USB_OTG_GRSTCTL_TXFNUM_Pos);
-    SET_BIT(USB1_OTG_HS->GRSTCTL, USB_OTG_GRSTCTL_TXFFLSH);
-
-    // wait for tx fifo flush to clear
-    while (READ_BIT(USB1_OTG_HS->GRSTCTL, USB_OTG_GRSTCTL_TXFFLSH)
-           == USB_OTG_GRSTCTL_TXFFLSH)
-    {
-    }
-
-    // wait for ahb bus idle
-    while ((READ_BIT(USB1_OTG_HS->GRSTCTL, USB_OTG_GRSTCTL_AHBIDL)
-            >> USB_OTG_GRSTCTL_AHBIDL_Pos)
-           == 0)
-    {
-    }
-
-    // flush all rx fifo
-    SET_BIT(USB1_OTG_HS->GRSTCTL, USB_OTG_GRSTCTL_RXFFLSH);
-
-    // wait for tx fifo flush to clear
-    while (READ_BIT(USB1_OTG_HS->GRSTCTL, USB_OTG_GRSTCTL_RXFFLSH)
-           == USB_OTG_GRSTCTL_RXFFLSH)
-    {
-    }
-
-    // clear all pending Device Interrupts
-    CLEAR_REG(USB_DEVICE->DIEPMSK);
-    CLEAR_REG(USB_DEVICE->DOEPMSK);
-    CLEAR_REG(USB_DEVICE->DAINTMSK);
-
-    for (int i = 0; i < 9; i++)
-    {
-        if (READ_BIT(USB_INEP(i)->DIEPCTL, USB_OTG_DIEPCTL_EPENA)
-            == USB_OTG_DIEPCTL_EPENA)
-        {
-            if (i == 0)
-            {
-                USB_INEP(i)->DIEPCTL = USB_OTG_DIEPCTL_SNAK;
-            }
-            else
-            {
-                USB_INEP(i)->DIEPCTL = USB_OTG_DIEPCTL_EPDIS
-                                       | USB_OTG_DIEPCTL_SNAK;
-            }
-        }
-        else
-        {
-            CLEAR_REG(USB_INEP(i)->DIEPCTL);
-        }
-
-        CLEAR_REG(USB_INEP(i)->DIEPTSIZ);
-        USB_INEP(i)->DIEPINT = 0xFB7FU;
-    }
-
-    for (int i = 0; i < 9; i++)
-    {
-        if ((USB_OUTEP(i)->DOEPCTL & USB_OTG_DOEPCTL_EPENA)
-            == USB_OTG_DOEPCTL_EPENA)
-        {
-            if (i == 0)
-            {
-                USB_OUTEP(i)->DOEPCTL = USB_OTG_DOEPCTL_SNAK;
-            }
-            else
-            {
-                USB_OUTEP(i)->DOEPCTL = USB_OTG_DOEPCTL_EPDIS
-                                        | USB_OTG_DOEPCTL_SNAK;
-            }
-        }
-        else
-        {
-            USB_OUTEP(i)->DOEPCTL = 0U;
-        }
-
-        USB_OUTEP(i)->DOEPTSIZ = 0U;
-        USB_OUTEP(i)->DOEPINT = 0xFB7FU;
-    }
-
-    CLEAR_BIT(USB_DEVICE->DIEPMSK, USB_OTG_DIEPMSK_TXFURM);
-
-    /* Disable all interrupts. */
-    CLEAR_REG(USB1_OTG_HS->GINTMSK);
-
-    /* Clear any pending interrupts */
-    USB1_OTG_HS->GINTSTS = 0xBFFFFFFFU;
-
-    /* Enable interrupts matching to the Device mode ONLY */
-    SET_BIT(USB1_OTG_HS->GINTMSK,
-            (USB_OTG_GINTMSK_USBSUSPM | USB_OTG_GINTMSK_USBRST
-             | USB_OTG_GINTMSK_ENUMDNEM | USB_OTG_GINTMSK_IEPINT
-             | USB_OTG_GINTMSK_OEPINT | USB_OTG_GINTMSK_IISOIXFRM
-             | USB_OTG_GINTMSK_PXFRM_IISOOXFRM | USB_OTG_GINTMSK_WUIM));
-
-    CLEAR_BIT(USB_PCGCCTL,
-              (USB_OTG_PCGCCTL_STOPCLK | USB_OTG_PCGCCTL_GATECLK));
-
-    SET_BIT(USB_DEVICE->DCTL, USB_OTG_DCTL_SDIS);
-}
-
-void OTG_HS_IRQHandler(void)
-{
-    tusb_int_handler(0, true);
-}
-
-// tinyusb device driver task
-void usb_device_task(void *params [[maybe_unused]])
-{
-    usb_init();
-    tusb_rhport_init_t port_init = { .role = TUSB_ROLE_DEVICE,
-                                     .speed = TUSB_SPEED_FULL };
-
-    tusb_init(0, &port_init);
-
-    while (1)
-    {
-        tud_task();
-    }
-}
-
-void usb_cdc_task(void *params [[maybe_unused]])
-{
-    while (1)
-    {
-        if (tud_cdc_connected())
-        {
-            // There are data available
-            while (tud_cdc_available())
-            {
-                uint8_t buf[64];
-
-                // read and echo back
-                uint32_t count = tud_cdc_read(buf, sizeof(buf));
-                (void)count;
-
-                // Echo back
-                // Note: Skip echo by commenting out write() and write_flush()
-                // for throughput test e.g
-                //    $ dd if=/dev/zero of=/dev/ttyACM0 count=10000
-                tud_cdc_write(buf, count);
-            }
-
-            tud_cdc_write_flush();
-        }
     }
 }
 
@@ -479,6 +233,7 @@ void SystemClock_Config(void)
     }
     LL_RCC_PLL_SetSource(LL_RCC_PLLSOURCE_HSE);
     LL_RCC_PLL1P_Enable();
+    LL_RCC_PLL1R_Enable();
     LL_RCC_PLL1_SetVCOInputRange(LL_RCC_PLLINPUTRANGE_8_16);
     LL_RCC_PLL1_SetVCOOutputRange(LL_RCC_PLLVCORANGE_WIDE);
     LL_RCC_PLL1_SetM(2);
@@ -528,4 +283,156 @@ void SystemClock_Config(void)
     LL_Init1msTick(550000000);
 
     LL_SetSystemCoreClock(550000000);
+
+    /* Update the time base */
+    if (HAL_InitTick(TICK_INT_PRIORITY) != HAL_OK)
+    {
+        Error_Handler();
+    }
+}
+
+void Error_Handler(void)
+{
+    __disable_irq();
+    while (1)
+    {
+    }
+}
+
+// HAL timebase functions
+
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
+{
+    if (htim->Instance == TIM7)
+    {
+        HAL_IncTick();
+    }
+}
+
+extern TIM_HandleTypeDef htim7;
+void TIM7_IRQHandler(void)
+{
+    /* USER CODE BEGIN TIM7_IRQn 0 */
+
+    /* USER CODE END TIM7_IRQn 0 */
+    HAL_TIM_IRQHandler(&htim7);
+    /* USER CODE BEGIN TIM7_IRQn 1 */
+
+    /* USER CODE END TIM7_IRQn 1 */
+}
+
+void HAL_MspInit(void)
+{
+    __HAL_RCC_SYSCFG_CLK_ENABLE();
+}
+
+// USB Functions
+
+PCD_HandleTypeDef hpcd_USB_OTG_HS;
+
+/* USB_OTG_HS init function */
+
+void OTG_HS_IRQHandler(void)
+{
+    tusb_int_handler(0, true);
+}
+
+// tinyusb device driver task
+void usb_device_task(void *params [[maybe_unused]])
+{
+    USB_OTG_HS_PCD_Init();
+    tusb_rhport_init_t port_init = { .role = TUSB_ROLE_DEVICE,
+                                     .speed = TUSB_SPEED_FULL };
+
+    tusb_init(0, &port_init);
+
+    while (1)
+    {
+        tud_task();
+    }
+}
+
+TaskHandle_t cdc_task_handle = NULL;
+
+void tud_cdc_rx_cb(uint8_t itf [[maybe_unused]])
+{
+    if (cdc_task_handle != NULL)
+    {
+        BaseType_t higher_priority_task_woken = pdFALSE;
+        // Notify the cdc processing task that data has arrived
+        vTaskNotifyGiveFromISR(cdc_task_handle, &higher_priority_task_woken);
+        portYIELD_FROM_ISR(higher_priority_task_woken);
+    }
+}
+
+void usb_cdc_task(void *params [[maybe_unused]])
+{
+    while (1)
+    {
+        // Wait indefinitely until tud_cdc_rx_cb gives a notification
+        ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+
+        // There are data available
+        while (tud_cdc_available())
+        {
+            uint8_t buf[64];
+
+            // read and echo back
+            uint32_t count = tud_cdc_read(buf, sizeof(buf));
+
+            // Echo back
+            tud_cdc_write(buf, count);
+        }
+
+        tud_cdc_write_flush();
+    }
+}
+
+void USB_OTG_HS_PCD_Init(void)
+{
+    hpcd_USB_OTG_HS.Instance = USB_OTG_HS;
+    hpcd_USB_OTG_HS.Init.dev_endpoints = 9;
+    hpcd_USB_OTG_HS.Init.speed = PCD_SPEED_FULL;
+    hpcd_USB_OTG_HS.Init.dma_enable = DISABLE;
+    hpcd_USB_OTG_HS.Init.phy_itface = USB_OTG_EMBEDDED_PHY;
+    hpcd_USB_OTG_HS.Init.Sof_enable = DISABLE;
+    hpcd_USB_OTG_HS.Init.low_power_enable = DISABLE;
+    hpcd_USB_OTG_HS.Init.lpm_enable = DISABLE;
+    hpcd_USB_OTG_HS.Init.vbus_sensing_enable = DISABLE;
+    hpcd_USB_OTG_HS.Init.use_dedicated_ep1 = DISABLE;
+    hpcd_USB_OTG_HS.Init.use_external_vbus = DISABLE;
+    if (HAL_PCD_Init(&hpcd_USB_OTG_HS) != HAL_OK)
+    {
+        Error_Handler();
+    }
+}
+
+void HAL_PCD_MspInit(PCD_HandleTypeDef *pcdHandle)
+{
+    if (pcdHandle->Instance == USB_OTG_HS)
+    {
+        LL_RCC_SetUSBClockSource(LL_RCC_USB_CLKSOURCE_PLL3Q);
+        LL_PWR_EnableUSBVoltageDetector();
+
+        /* USB_OTG_HS clock enable */
+        __HAL_RCC_USB_OTG_HS_CLK_ENABLE();
+
+        /* USB_OTG_HS interrupt Init */
+        HAL_NVIC_SetPriority(OTG_HS_IRQn,
+                             configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY,
+                             0);
+        HAL_NVIC_EnableIRQ(OTG_HS_IRQn);
+    }
+}
+
+void HAL_PCD_MspDeInit(PCD_HandleTypeDef *pcdHandle)
+{
+    if (pcdHandle->Instance == USB_OTG_HS)
+    {
+        /* Peripheral clock disable */
+        __HAL_RCC_USB_OTG_HS_CLK_DISABLE();
+
+        /* USB_OTG_HS interrupt Deinit */
+        HAL_NVIC_DisableIRQ(OTG_HS_IRQn);
+    }
 }

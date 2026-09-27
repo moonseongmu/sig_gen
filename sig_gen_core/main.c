@@ -48,13 +48,13 @@ int main(void)
                 configMINIMAL_STACK_SIZE * 2,
                 NULL,
                 configMAX_PRIORITIES - 2,
-                &oscillator_task_handle);
+                NULL);
     xTaskCreate(usb_cdc_task,
                 "usb_cdc_task",
                 configMINIMAL_STACK_SIZE * 2,
                 NULL,
                 configMAX_PRIORITIES - 3,
-                &oscillator_task_handle);
+                &cdc_task_handle);
     vTaskStartScheduler();
     while (1)
     {

@@ -138,7 +138,7 @@
  *
  * Defining configTICK_TYPE_WIDTH_IN_BITS as TICK_TYPE_WIDTH_64_BITS causes
  * TickType_t to be defined (typedef'ed) as an unsigned 64-bit type. */
-#define configTICK_TYPE_WIDTH_IN_BITS TICK_TYPE_WIDTH_64_BITS
+#define configTICK_TYPE_WIDTH_IN_BITS TICK_TYPE_WIDTH_32_BITS
 
 /* Set configIDLE_SHOULD_YIELD to 1 to have the Idle task yield to an
  * application task if there is an Idle priority (priority 0) application task
@@ -339,11 +339,12 @@
  * See https://www.freertos.org/RTOS-Cortex-M3-M4.html for information specific
  * to ARM Cortex-M devices. */
 #define configMAX_SYSCALL_INTERRUPT_PRIORITY \
-    configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY << (8 - 4) 
+    configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY << (8 - 4)
 
 /* Another name for configMAX_SYSCALL_INTERRUPT_PRIORITY - the name used
  * depends on the FreeRTOS port. */
-#define configMAX_API_CALL_INTERRUPT_PRIORITY configMAX_SYSCALL_INTERRUPT_PRIORITY
+#define configMAX_API_CALL_INTERRUPT_PRIORITY \
+    configMAX_SYSCALL_INTERRUPT_PRIORITY
 
 /******************************************************************************/
 /* Hook and callback function related definitions.
