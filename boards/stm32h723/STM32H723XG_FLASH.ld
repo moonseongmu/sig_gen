@@ -245,9 +245,11 @@ SECTIONS
   .ram_section :
   {
     . = ALIGN(4);
+    _ram_section_start = .;
     *(.oscillator_struct);
     *(.usb_ram);
     . = ALIGN(4);
+    _ram_section_end = .;
   } >RAM_D1
 
 

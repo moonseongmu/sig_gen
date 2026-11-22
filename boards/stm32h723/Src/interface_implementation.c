@@ -64,6 +64,12 @@ uint32_t get_cyccnt(void)
 
 void system_init(void)
 {
+    extern uint8_t _ram_section_start;
+    extern uint8_t _ram_section_end;
+    size_t _ram_section_size = (size_t)(&_ram_section_end
+                                        - &_ram_section_start);
+    memset(&_ram_section_start, 0, _ram_section_size);
+    
     LL_APB4_GRP1_EnableClock(LL_APB4_GRP1_PERIPH_SYSCFG);
 
     /* System interrupt init*/
@@ -157,7 +163,7 @@ void block_transfer_init(oscillator_t *oscillator)
     // timer output frequecy is 1MHz
     oscillator->clock_freq = 1000000;
 
-    oscillator->out_freq = 100;
+    oscillator->out_freq = 100000;
 }
 
 // output to dac at timer rate
