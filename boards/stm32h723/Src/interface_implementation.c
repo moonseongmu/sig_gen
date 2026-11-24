@@ -69,7 +69,7 @@ void system_init(void)
     size_t _ram_section_size = (size_t)(&_ram_section_end
                                         - &_ram_section_start);
     memset(&_ram_section_start, 0, _ram_section_size);
-    
+
     LL_APB4_GRP1_EnableClock(LL_APB4_GRP1_PERIPH_SYSCFG);
 
     /* System interrupt init*/
@@ -343,55 +343,9 @@ void OTG_HS_IRQHandler(void)
     tusb_int_handler(0, true);
 }
 
-// tinyusb device driver task
-void usb_device_task(void *params [[maybe_unused]])
+void usb_init(void)
 {
     USB_OTG_HS_PCD_Init();
-    tusb_rhport_init_t port_init = { .role = TUSB_ROLE_DEVICE,
-                                     .speed = TUSB_SPEED_FULL };
-
-    tusb_init(0, &port_init);
-
-    while (1)
-    {
-        tud_task();
-    }
-}
-
-TaskHandle_t cdc_task_handle = NULL;
-
-void tud_cdc_rx_cb(uint8_t itf [[maybe_unused]])
-{
-    if (cdc_task_handle != NULL)
-    {
-        BaseType_t higher_priority_task_woken = pdFALSE;
-        // Notify the cdc processing task that data has arrived
-        vTaskNotifyGiveFromISR(cdc_task_handle, &higher_priority_task_woken);
-        portYIELD_FROM_ISR(higher_priority_task_woken);
-    }
-}
-
-void usb_cdc_task(void *params [[maybe_unused]])
-{
-    while (1)
-    {
-        // Wait indefinitely until tud_cdc_rx_cb gives a notification
-        ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
-
-        // There are data available
-        while (tud_cdc_available())
-        {
-            uint8_t buf[64];
-
-            // read and echo back
-            uint32_t count = tud_cdc_read(buf, sizeof(buf));
-
-            // Echo back
-            tud_cdc_write(buf, count);
-        }
-
-        tud_cdc_write_flush();
-    }
 }
 
 void USB_OTG_HS_PCD_Init(void)
