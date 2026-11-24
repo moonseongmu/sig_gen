@@ -163,7 +163,7 @@ void block_transfer_init(oscillator_t *oscillator)
     // timer output frequecy is 1MHz
     oscillator->clock_freq = 1000000;
 
-    oscillator->out_freq = 100000;
+    oscillator->out_freq = 1000;
 }
 
 // output to dac at timer rate

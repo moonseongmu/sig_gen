@@ -30,11 +30,20 @@
 // defines
 constexpr uint32_t BLOCK_SIZE = 512;
 
+enum wave_type
+{
+    SIN,
+    TRI,
+    SAW,
+    REV_SAW
+};
+
 typedef struct
 {
     uint32_t phase_accumulator;
     uint32_t tuning_word;
     uint16_t value;
+    enum wave_type wave_type;
 } dds_t;
 
 typedef enum active_buffer_t

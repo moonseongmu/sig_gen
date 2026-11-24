@@ -29,19 +29,20 @@
 //clang-format on
 
 [[gnu::section(".oscillator_struct")]]
-oscillator_t oscillator_struct = {
-    .buffer_1 = {},
-    .buffer_2 = {},
-    .dds = { .phase_accumulator = 0, .tuning_word = 0, .value = 0 },
-    .out_freq = 0,
-    .clock_freq = 0,
-    .buffers_swapped = false,
-    .active_buffer = buffer_1
-};
+oscillator_t oscillator_struct = { .buffer_1 = {},
+                                   .buffer_2 = {},
+                                   .dds = { .phase_accumulator = 0,
+                                            .tuning_word = 0,
+                                            .value = 0,
+                                            .wave_type = SIN },
+                                   .out_freq = 0,
+                                   .clock_freq = 0,
+                                   .buffers_swapped = false,
+                                   .active_buffer = buffer_1 };
 
 TaskHandle_t oscillator_task_handle = NULL;
 
-// fills ifle buffers while dac outputs
+// fills idle buffers while dac outputs
 void oscillator_task(void *params)
 {
     oscillator_t *oscillator = (oscillator_t *)params;
@@ -52,6 +53,7 @@ void oscillator_task(void *params)
     oscillator->dds.tuning_word = freq_to_tuning_word(oscillator->out_freq,
                                                       oscillator->clock_freq);
     oscillator->dds.phase_accumulator = 0;
+    oscillator->dds.wave_type = SAW;
 
     block_transfer_start();
 
