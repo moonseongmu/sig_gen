@@ -2,6 +2,7 @@
     "clangd.arguments": [
         "--header-insertion=never"
     ],
+    "clangd.path": "C:/Program Files/ATfE-23.1.0-Windows-x86_64/bin/clangd.exe",
     "mesonbuild.configureOnOpen": false,
     "editor.formatOnSave": true
 }
