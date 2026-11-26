@@ -1,8 +1,8 @@
 [binaries]
-c='clang.exe'
-ar='llvm-ar.exe'
-strip='llvm-strip.exe'
-objcopy='llvm-objcopy.exe'
+c='C:/Program Files/ATfE-22.1.0-Windows-x86_64/bin/clang.exe'
+ar='C:/Program Files/ATfE-22.1.0-Windows-x86_64/bin/llvm-ar.exe'
+strip='C:/Program Files/ATfE-22.1.0-Windows-x86_64/bin/llvm-strip.exe'
+objcopy='C:/Program Files/ATfE-22.1.0-Windows-x86_64/bin/llvm-objcopy.exe'
 
 [host_machine]
 system='bare_metal'
